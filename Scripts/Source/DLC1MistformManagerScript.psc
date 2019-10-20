@@ -1,0 +1,52 @@
+Scriptname DLC1MistformManagerScript extends ReferenceAlias
+
+GlobalVariable Property DLC1MistformCount Auto
+
+Race Property VampireLordRace Auto
+
+Spell Property DLC1VampireMistform Auto
+Spell Property CurrentEquippedPower Auto
+
+Message Property DLC1MistformWaitMessage Auto
+Message Property DLC1MistformReadyMessage Auto
+
+Float Property MistformCooldown Auto
+
+Int Property MistformMaxUses Auto
+
+Event OnInit()
+
+  DLC1MistformCount.Value = 0
+
+EndEvent
+
+Event OnSpellCast(Form akSpellCast)
+
+  If akSpellCast == DLC1VampireMistform
+    If DLC1MistformCount.Value == 0
+      RegisterForSingleUpdateGameTime(MistformCoolDown)
+    endIf
+
+    DLC1MistformCount.Value += 1
+
+    If DLC1MistformCount.Value >= MistformMaxUses
+      GetActorRef().RemoveSpell(DLC1VampireMistform)
+    EndIf
+  EndIf
+
+EndEvent
+
+Event OnUpdateGameTime()
+
+  If DLC1MistformCount.Value >= MistformMaxUses
+    DLC1MistformReadyMessage.Show()
+    GetActorRef().AddSpell(DLC1VampireMistform, abVerbose = False)
+
+    If GetActorRef().GetEquippedSpell(2) == None
+      GetActorRef().EquipSpell(DLC1VampireMistform, 2)
+    EndIf
+  EndIf
+
+  DLC1MistformCount.Value = 0
+
+EndEvent
