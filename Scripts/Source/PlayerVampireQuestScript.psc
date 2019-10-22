@@ -10,13 +10,11 @@ Int Property_VampireStatus Conditional
 
 Int Property VampireStatus
 {
-  Current vampire status.
-
-    0 = Not a Vampire
-    1 = Vampire Stage 1
-    2 = Vampire Stage 2
-    3 = Vampire Stage 3
-    4 = Vampire Stage 4
+   0 = Not a Vampire
+   1 = Vampire Stage 1
+   2 = Vampire Stage 2
+   3 = Vampire Stage 3
+   4 = Vampire Stage 4
 }
 
   Int Function Get()
@@ -29,15 +27,13 @@ Int Property_VampireRank Conditional
 
 Int Property VampireRank
 {
-  Current vampire rank.
-
-  0 = Not a vampire
-  1 = Vampire Fledgling
-  2 = Blooded Vampire
-  3 = Vampire Mistwalker
-  4 = Vampire Nightstalker
-  5 = Nightlord Vampire
-  6 = Nightmaster Vampire
+   0 = Not a vampire
+   1 = Vampire Fledgling
+   2 = Blooded Vampire
+   3 = Vampire Mistwalker
+   4 = Vampire Nightstalker
+   5 = Nightlord Vampire
+   6 = Nightmaster Vampire
 }
 
   Int Function Get()
@@ -67,9 +63,6 @@ Float Property LastFeedTime
   Endfunction
 
 EndProperty
-
-GlobalVariable Property GameDaysPassed Auto
-{ Get the current date for tracking feed timer. }
 
 GlobalVariable Property PlayerIsVampire Auto
 { Set to 1 if the player is a vampire, 0 otherwiese. }
@@ -102,7 +95,7 @@ Quest Property VC01 Auto
 { Vampire cure quest. }
 
 FormList Property DLC1VampireHateFactions Auto
-{ Dawnguard crime factions. }
+{ Factions that hate Vampires. }
 
 ImageSpaceModifier Property VampireTransformDecreaseISMD Auto
 { Vampire feeding and progression image space modifier. }
@@ -131,10 +124,14 @@ MagicEffect Property DLC1VampireChangeEffect Auto
 MagicEffect Property DLC1VampireChangeFXEffect Auto
 { Used to check for Vampire Lord form. }
 
+GlobalVariable Property GameDaysPassed Auto
+
 Spell Property AbVampireSkills Auto
 Spell Property AbVampireSkills02 Auto
 
 Spell[] Property VampireStrengthSpells Auto
+
+FormList Property VampireImmuneDiseases Auto
 
 Spell Property AbVampireChillTouch Auto
 Spell Property DLC1VampireChange Auto
@@ -155,8 +152,6 @@ Spell[] Property VampireClawsSpells Auto
 Spell[] Property VampireDrainSpells Auto
 Spell[] Property VampireRaiseThrallSpells Auto
 Spell[] Property VampireSunDamageSpells Auto
-
-FormList Property VampireImmuneDiseases Auto
 
 ;-------------------------------------------------------------------------------
 ;
@@ -207,14 +202,13 @@ Event OnUpdate()
   Actor PlayerRef = Game.GetPlayer()
 
   If VampireSafeToUpdate(PlayerRef)
-    Int NewStage = Property_VampireStatus + Math.Floor(GameDaysPassed.Value - Property_LastFeedTime)
-    Bool Verbose = (NewStage != Property_VampireStatus)
+    Int NewStage = Property_VampireStatus + Math.Floor(GameDaysPassed.Value - LastUpdateTime)
 
     If NewStage > 4
       NewStage = 4
     EndIf
 
-    VampireProgression(PlayerRef, NewStage, Verbose)
+    VampireProgression(PlayerRef, NewStage, NewStage != Property_VampireStatus)
     __StartFeedTimer()
   Else
     RegisterForSingleUpdate(5.0)
@@ -279,8 +273,10 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
   EndIf
 
   If NewStage >= 0 && NewStage <= 4
-    Property_VampireStatus = NewStage
-    LastUpdateTime = GameDaysPassed.Value
+    If Property_VampireStatus != NewStage
+      Property_VampireStatus = NewStage
+      LastUpdateTime = GameDaysPassed.Value
+    EndIf
 
     If Property_VampireStatus > 0
       PlayerIsVampire.SetValue(1)
@@ -297,8 +293,6 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
   VampireRemoveLeveledSpells(Target, VampireStrengthSpells)
 
   If Property_VampireStatus == 0
-    VampireSetHated(False)
-
     Target.RemoveSpell(DLC1VampireChange)
 
     Target.RemoveSpell(AbVampireChillTouch)
@@ -464,7 +458,7 @@ Bool Function VampireUpdateRank(Actor Target, Bool Reset = False)
   Else
     If Property_Feedings < 3
       Property_VampireRank = 1
-    ElseIf Property_Feedings < 10 && Level > 10
+    ElseIf Property_Feedings < 9 && Level > 10
       Property_VampireRank = 2
     ElseIf Property_Feedings < 25 && Level > 20
       Property_VampireRank = 3
@@ -514,9 +508,7 @@ EndFunction
 
 Function VampireAddLeveledSpell(Actor Target, Spell[] VampireSpells, Int VampireLevel)
 {
-  Add a leveled spell from the given array. The array should consist of all
-  spells of a single type, ordered from lowest to highest rank. The first index
-  should be empty, to allow for 1-indexing.
+  Add a leveled spell from the given 1-indexed, ordered array.
 }
 
   Int Index = VampireSpells.Length
@@ -535,9 +527,7 @@ EndFunction
 
 Function VampireRemoveLeveledSpells(Actor Target, Spell[] VampireSpells)
 {
-  Remove all spells from the given array. The array should consist of all spells
-  of a single type, ordered from lowest to highest rank. The first index should
-  be empty, to allow for 1-indexing.
+  Remove all spells from the given 1-indexed, ordered array.
 }
 
   Int Index = VampireSpells.Length
@@ -551,7 +541,7 @@ EndFunction
 
 Function VampireRemoveSpells(Actor Target, FormList VampireSpells)
 {
-  Remove all spells in the given form list.
+  Remove all spells in the given Form List.
 }
 
   Int Index = VampireSpells.GetSize()
@@ -597,6 +587,18 @@ Function VampirePlayCure(Actor Target)
   HealMysticFXS.Play(Target)
   VampireImageSpaceModifier()
   HealMysticFXS.Stop(Target)
+
+EndFunction
+
+Function VampireAddCharmSpell()
+{
+  Add the appropriate leveled Vampire's Seduction spell to the player.
+}
+
+  Actor PlayerRef = Game.GetPlayer()
+
+  VampireRemoveLeveledSpells(PlayerRef, VampireCharmSpells)
+  VampireAddLeveledSpell(PlayerRef, VampireCharmSpells, Property_VampireRank)
 
 EndFunction
 

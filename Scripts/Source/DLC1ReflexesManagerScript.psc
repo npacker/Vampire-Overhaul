@@ -14,13 +14,9 @@ FLoat Property ReflexesCooldown Auto
 
 Int Property ReflexesMaxUses Auto
 
-Event OnInit()
-
-  DLC1ReflexesCount.Value = 0
-
-EndEvent
-
 Event OnSpellCast(Form akSpellCast)
+
+  Actor PlayerRef = GetReference() as Actor
 
   If akSpellCast == DLC1SupernaturalReflexes
     If DLC1ReflexesCount.Value == 0
@@ -30,7 +26,7 @@ Event OnSpellCast(Form akSpellCast)
     DLC1ReflexesCount.Value += 1
 
     If DLC1ReflexesCount.Value >= ReflexesMaxUses
-      GetActorRef().RemoveSpell(DLC1SupernaturalReflexes)
+      PlayerRef.RemoveSpell(DLC1SupernaturalReflexes)
     EndIf
   EndIf
 
@@ -38,14 +34,14 @@ EndEvent
 
 Event OnUpdateGameTime()
 
-  UnRegisterforUpdateGameTime()
+  Actor PlayerRef = GetReference() as Actor
 
   If  DLC1ReflexesCount.Value >= ReflexesMaxUses
     DLC1ReflexesReadyMessage.Show()
-    GetActorRef().AddSpell(DLC1SupernaturalReflexes, false)
+    PlayerRef.AddSpell(DLC1SupernaturalReflexes, false)
 
-    If GetActorRef().GetEquippedSpell(2) == None
-      GetActorRef().EquipSpell(DLC1SupernaturalReflexes, 2)
+    If PlayerRef.GetEquippedSpell(2) == None
+      PlayerRef.EquipSpell(DLC1SupernaturalReflexes, 2)
     EndIf
   EndIf
 

@@ -14,13 +14,9 @@ Float Property MistformCooldown Auto
 
 Int Property MistformMaxUses Auto
 
-Event OnInit()
-
-  DLC1MistformCount.Value = 0
-
-EndEvent
-
 Event OnSpellCast(Form akSpellCast)
+
+  Actor PlayerRef = GetReference() as Actor
 
   If akSpellCast == DLC1VampireMistform
     If DLC1MistformCount.Value == 0
@@ -30,7 +26,7 @@ Event OnSpellCast(Form akSpellCast)
     DLC1MistformCount.Value += 1
 
     If DLC1MistformCount.Value >= MistformMaxUses
-      GetActorRef().RemoveSpell(DLC1VampireMistform)
+      PlayerRef.RemoveSpell(DLC1VampireMistform)
     EndIf
   EndIf
 
@@ -38,12 +34,14 @@ EndEvent
 
 Event OnUpdateGameTime()
 
+  Actor PlayerRef = GetReference() as Actor
+
   If DLC1MistformCount.Value >= MistformMaxUses
     DLC1MistformReadyMessage.Show()
-    GetActorRef().AddSpell(DLC1VampireMistform, abVerbose = False)
+    PlayerRef.AddSpell(DLC1VampireMistform, abVerbose = False)
 
-    If GetActorRef().GetEquippedSpell(2) == None
-      GetActorRef().EquipSpell(DLC1VampireMistform, 2)
+    If PlayerRef.GetEquippedSpell(2) == None
+      PlayerRef.EquipSpell(DLC1VampireMistform, 2)
     EndIf
   EndIf
 

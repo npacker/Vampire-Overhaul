@@ -83,6 +83,15 @@ GlobalVariable Property DCL1VampireLevitateStateGlobal Auto
     2 = Levitating
 }
 
+GlobalVariable Property DLC1BatsCount Auto
+{ Bats power max uses before cooldown. }
+
+GlobalVariable Property DLC1MistformCount Auto
+{ Mistform power max uses before cooldown. }
+
+GlobalVariable Property DLC1ReflexesCount Auto
+{ Supernatural Reflexes power max uses before cooldown. }
+
 ;-------------------------------------------------------------------------------
 ; VAMPIRE LORD WEARABLES
 ;-------------------------------------------------------------------------------
@@ -243,6 +252,14 @@ Bool ShuttingDown = False
 ; EVENTS
 ;
 ;-------------------------------------------------------------------------------
+
+Event OnInit()
+
+  DLC1BatsCount.Value = 0
+  DLC1MistformCount.Value = 0
+  DLC1ReflexesCount.Value = 0
+
+EndEvent
 
 Event OnAnimationEvent(ObjectReference Target, String EventName)
 

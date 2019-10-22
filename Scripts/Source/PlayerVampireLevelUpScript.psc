@@ -5,7 +5,7 @@ PlayerVampireQuestScript Property PlayerVampireQuest Auto
 Event OnStoryIncreaseLevel(Int aiNewLevel)
 
   If PlayerVampireQuest.VampireUpdateRank(Game.GetPlayer())
-    RegisterForSingleUpdate(10.0)
+    RegisterForSingleUpdate(5.0)
   Else
     Stop()
   EndIf
@@ -21,7 +21,7 @@ Event OnUpdate()
     PlayerVampireQuest.VampireShowRankMessage()
     Stop()
   Else
-    RegisterForSingleUpdate(10.0)
+    RegisterForSingleUpdate(5.0)
   EndIf
 
 EndEvent

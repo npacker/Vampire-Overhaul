@@ -17,6 +17,12 @@ Int Property BatsIndoorMaxUses Auto
 Spell Property DLC1Mistform  Auto
 Spell Property DLC1VampireBats Auto
 
+Event OnPlayerLoadGame()
+
+  (GetOwningQuest() as DLC1PlayerVampireChangeScript).HandlePlayerLoadGame()
+
+EndEvent
+
 Event OnRaceSwitchComplete()
 
   Actor PlayerRef = GetReference() as Actor
@@ -29,12 +35,6 @@ Event OnRaceSwitchComplete()
   Else
     (GetOwningQuest() as DLC1PlayerVampireChangeScript).Shutdown()
   EndIf
-
-EndEvent
-
-Event OnPlayerLoadGame()
-
-  (GetOwningQuest() as DLC1PlayerVampireChangeScript).HandlePlayerLoadGame()
 
 EndEvent
 
