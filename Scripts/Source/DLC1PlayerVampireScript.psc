@@ -2,20 +2,18 @@ Scriptname DLC1PlayerVampireScript extends ReferenceAlias
 
 Race Property VampireLordRace Auto
 
+Spell Property DLC1VampireBats Auto
+
 Message Property DLC1BatsWaitMessage Auto
 Message Property DLC1BatsReadyMessage Auto
-
-Spell Property CurrentEquippedPower Auto
 
 GlobalVariable Property DLC1BatsCount Auto
 
 Float Property BatsCooldown Auto
 
-Int Property BatsOutdoorMaxUses Auto
-Int Property BatsIndoorMaxUses Auto
+Int Property BatsMaxUses Auto
 
-Spell Property DLC1Mistform  Auto
-Spell Property DLC1VampireBats Auto
+Spell Property CurrentEquippedPower Auto
 
 Event OnPlayerLoadGame()
 
@@ -38,6 +36,29 @@ Event OnRaceSwitchComplete()
 
 EndEvent
 
+Event OnObjectEquipped(Form BaseObject, ObjectReference Reference)
+
+  Actor PlayerRef = GetReference() as Actor
+
+  CurrentEquippedPower = PlayerRef.GetEquippedSpell(2)
+
+  If CurrentEquippedPower && (BaseObject == CurrentEquippedPower)
+    (GetOwningQuest() as DLC1PlayerVampireChangeScript).HandleEquippedPower(CurrentEquippedPower)
+  EndIf
+
+EndEvent
+
+Event OnObjectUnequipped(Form BaseObject, ObjectReference Reference)
+
+  Actor PlayerRef = GetReference() as Actor
+
+  If BaseObject == CurrentEquippedPower
+    CurrentEquippedPower = None
+    (GetOwningQuest() as DLC1PlayerVampireChangeScript).HandleEquippedPower(None)
+  EndIf
+
+EndEvent
+
 Event OnSpellCast(Form SpellCast)
 
   Actor PlayerRef = GetReference() as Actor
@@ -49,8 +70,7 @@ Event OnSpellCast(Form SpellCast)
 
     DLC1BatsCount.Value += 1
 
-    If (!PlayerRef.IsInInterior() && DLC1BatsCount.Value >= BatsOutdoorMaxUses) \
-        || (PlayerRef.IsInInterior() && DLC1BatsCount.Value >= BatsIndoorMaxUses)
+    If DLC1BatsCount.Value >= BatsMaxUses
       DLC1BatsWaitMessage.Show()
       GetActorRef().RemoveSpell(DLC1VampireBats)
     EndIf
@@ -62,8 +82,7 @@ Event OnUpdateGameTime()
 
   Actor PlayerRef = GetReference() as Actor
 
-  If (!PlayerRef.IsInInterior() && DLC1BatsCount.Value >= BatsOutdoorMaxUses) \
-      || (PlayerRef.IsInInterior() && DLC1BatsCount.Value >= BatsIndoorMaxUses)
+  If DLC1BatsCount.Value >= BatsMaxUses
     DLC1BatsReadyMessage.Show()
     GetActorRef().AddSpell(DLC1VampireBats, False)
 

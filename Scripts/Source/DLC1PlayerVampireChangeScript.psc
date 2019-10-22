@@ -68,8 +68,11 @@ FormList Property DLC1SendWerewolfLocationExceptions Auto
 FormList Property VampireDispelList Auto
 { Vampire spells that should be dispelled. }
 
-Spell Property CurrentEquippedLeftSpell Auto
-{ The spell the vampire lord currently has equiped. }
+Spell Property CurrentEquippedSpell Auto
+{ The spell the vampire lord currently has equipped. }
+
+Spell Property LastEquippedPower Auto
+{ The power the vampire lord currently has equipped. }
 
 Bool Property DLC1HasLightfoot Auto
 { Whether the player character has the Light Foot perk. }
@@ -312,15 +315,16 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
   If EventName == Ground
     DCL1VampireLevitateStateGlobal.SetValue(1)
 
-    ; Save off the spell currently equipped in the left hand.
-    CurrentEquippedLeftSpell = PlayerRef.GetEquippedSpell(0)
+    ; Update the currently equipped left hand spell.
+    CurrentEquippedSpell = PlayerRef.GetEquippedSpell(0)
 
-    ; There may not be a currently equipped spell.
-    If CurrentEquippedLeftSpell != None
-      PlayerRef.UnequipSpell(CurrentEquippedLeftSpell, 0)
+    ; There may not be a currently equipped spell when on the ground. Store it
+    ; so that it can be re-equipped next time the player levitates.
+    If CurrentEquippedSpell
+      PlayerRef.UnequipSpell(CurrentEquippedSpell, 0)
     EndIf
 
-    ; Now remove and unequip whatever spells are in the left & right hands.
+    ; Now unequip and remove whatever spells are in the left & right hands.
     PlayerRef.UnequipSpell(LeveledDrainSpell, 1)
     PlayerRef.RemoveSpell(LeveledRaiseDeadSpell)
     PlayerRef.RemoveSpell(DlC1CorpseCurse)
@@ -343,23 +347,20 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
     ; Always equip a Vampire Drain in the right hand.
     PlayerRef.EquipSpell(LeveledDrainSpell, 1)
 
-    ; Now we'll re-equip whatever spell was previously eqiupped in the left hand.
-    ; This was stored when we went to Ground. It'll be None the first time
-    ; we transition, so we'll set it to the default Reanimate Corpse spell.
+    ; Re-equip whatever spell was previously eqiupped in the left hand. If no
+    ; spell was equipped, default the the Raise Dead spell.
     If (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell == None
-      (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell = DLC1VampireRaiseDeadLeftHand01
+      (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell = LeveledRaiseDeadSpell
     EndIf
 
-    If CurrentEquippedLeftSpell == None
-      CurrentEquippedLeftSpell = (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell
-    EndIf
+    CurrentEquippedSpell = (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell
 
     ; Check to see if we need to add any perk-related spells.
     ; We need to do this here because the player may have added new perks since
     ; the last time.
     CheckPerkSpells()
     PlayerRef.AddSpell(LeveledRaiseDeadSpell, False)
-    PlayerRef.EquipSpell(CurrentEquippedLeftSpell, 0)
+    PlayerRef.EquipSpell(CurrentEquippedSpell, 0)
     PlayerRef.EquipSpell(LeveledDrainSpell, 1)
   EndIf
   ; END LEVITATING
@@ -383,9 +384,8 @@ Function PrepShift()
   Actor PlayerRef = Game.GetPlayer()
 
   ; Set up the UI restrictions.
-  Game.SetInChargen(True, True, False)
-  Game.EnableFastTravel(False)
   PreTransformDisablePlayerControls()
+  Game.EnableFastTravel(False)
   Game.ForceThirdPerson()
   Game.ShowFirstPersonGeometry(False)
   Game.SetBeastForm(True)
@@ -480,28 +480,23 @@ Function StartTracking()
   TrackingStarted = True
   Actor PlayerRef = Game.GetPlayer()
 
-  ; The player begins levitating after their transformation is complete.
-  DCL1VampireLevitateStateGlobal.SetValue(1)
-
   ; Register for animation events now. This function is called after the race
   ; switch is complete, and the behavior graph changes during that time. If we
   ; register for events while the change is happening, one or more events might
   ; get un-registered when the player's behavior graph changes and we won't get
   ; events for it.
+  DCL1VampireLevitateStateGlobal.SetValue(1)
   RegisterForEvents()
 
   ; Equip the vampire lord armor.
   ; PlayerRef.EquipItem(DLC1ClothesVampireLordArmor, False, True)
 
-  ; Add the player to the vampire lord faction.
-  PlayerRef.AddToFaction(DLC1PlayerVampireLordFaction)
+  ; Cause the player to be attacked on sight.
+  VampireLordSetHate(True)
 
-  ; Make the player the enemy of vampire hate factions.
-  VampireHateFactionsSetPlayerEnemy(True)
-
-  ; Do not sned the transformation alert if the player is in Volkihar castle.
+  ; Alert anyone nearby that they should now know the player is a vampire.
+  ; Do not sned the transformation alert if the player is in Castle Volkihar.
   If !DLC1SendWerewolfLocationExceptions.HasForm(PlayerRef.GetCurrentLocation())
-    ; Alert anyone nearby that they should now know the player is a vampire.
     Game.SendWereWolfTransformation()
   EndIf
 
@@ -515,17 +510,26 @@ Function StartTracking()
   PlayerRef.RemoveSpell(VampireSunDamage04)
 
   ; Add Vampire Lord Abilities.
+  PlayerRef.AddSpell(DLC1VampireBats, False)
   PlayerRef.AddSpell(DLC1VampireLordSunDamage, False)
   PlayerRef.AddSpell(LeveledAbility, False)
   PlayerRef.AddSpell(VampireHuntersSight, False)
-  PlayerRef.AddSpell(DLC1VampireBats, False)
+
+  ; Add the Revert power.
   PlayerRef.AddSpell(DLC1Revert, False)
+
+  ; Default power is Bats.
+  If (DialogueGenericVampire as VampireQuestScript).LastPower == None
+    (DialogueGenericVampire as VampireQuestScript).LastPower = DLC1VampireBats
+  EndIf
 
   ; Equip the last spell the player had equipped as a vampire lord.
   PlayerRef.EquipSpell((DialogueGenericVampire as VampireQuestScript).LastPower, 2)
 
+  ; Verify the player has all perk-enabled spells.
   CheckPerkSpells()
 
+  ; Player won't trigger pressure plates as a Vampire Lord.
   If PlayerRef.HasPerk(Lightfoot)
     DLC1HasLightfoot = True
   else
@@ -538,7 +542,6 @@ Function StartTracking()
 
   ; Re-enable controls, saving and waiting.
   VampireLordEnablePlayerControls()
-  Game.SetInChargen(False, False, False)
 
   ; We're done with the transformation handling. Player is now free to roam as a
   ; Vampire Lord.
@@ -594,14 +597,12 @@ Function ActuallyShiftBackIfNecessary()
   Actor PlayerRef = Game.GetPlayer()
 
   ; Disable save and wait while reverting form.
-  Game.SetInChargen(True, True, False)
   PreTransformDisablePlayerControls()
 
   ; Unregister for animation events first, because if we don't we could get
   ; a Levitate event after we've set DLC1VampireLevitateStateGlobal to 1, and
   ; the value would be incorrect.
   UnregisterForEvents()
-
   DCL1VampireLevitateStateGlobal.SetValue(1)
 
   If PlayerRef.IsDead()
@@ -622,40 +623,36 @@ Function ActuallyShiftBackIfNecessary()
     PlayerRef.RemovePerk(Lightfoot)
   EndIf
 
-  ; Save CurrentEquippedLeftSpell (which is only used while vampire lord) - to
-  ; allow script to reequip the same spell when returning to Vampire Lord form.
-  CurrentEquippedLeftSpell = PlayerRef.GetEquippedSpell(0)
+  ; Save CurrentEquippedSpell to re-equip when returning to Vampire Lord form.
+  CurrentEquippedSpell = PlayerRef.GetEquippedSpell(0)
+  (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell = CurrentEquippedSpell
+
+  ; Save LastEquippedPower to re-equip when returning to Vampire Lord form.
+  (DialogueGenericVampire as VampireQuestScript).LastPower = LastEquippedPower
 
   ; Clear out perks/abilities.
-  (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell = CurrentEquippedLeftSpell
-
-  If PlayerRef.GetEquippedSpell(2) == DLC1Revert
-    (DialogueGenericVampire as VampireQuestScript).LastPower = DLC1VampireBats
-  Else
-    (DialogueGenericVampire as VampireQuestScript).LastPower = PlayerRef.GetEquippedSpell(2)
-  EndIf
-
-  PlayerRef.RemoveSpell(LeveledDrainSpell)
   PlayerRef.RemoveSpell(LeveledAbility)
+  PlayerRef.RemoveSpell(LeveledDrainSpell)
   PlayerRef.RemoveSpell(LeveledRaiseDeadSpell)
 
-  PlayerRef.RemoveSpell(DLC1VampiresGrip)
   PlayerRef.RemoveSpell(DLC1ConjureGargoyleLeftHand)
   PlayerRef.RemoveSpell(DLC1CorpseCurse)
-  PlayerRef.RemoveSpell(DLC1VampireDetectLife)
-  PlayerRef.RemoveSpell(DLC1VampireMistForm)
-  PlayerRef.RemoveSpell(DLC1VampireBats)
-  PlayerRef.RemoveSpell(DLC1SupernaturalReflexes)
   PlayerRef.RemoveSpell(DLC1NightCloak)
   PlayerRef.RemoveSpell(DLC1Revert)
+  PlayerRef.RemoveSpell(DLC1SupernaturalReflexes)
+  PlayerRef.RemoveSpell(DLC1VampireBats)
+  PlayerRef.RemoveSpell(DLC1VampireDetectLife)
   PlayerRef.RemoveSpell(DLC1VampireLordSunDamage)
+  PlayerRef.RemoveSpell(DLC1VampireMistForm)
+  PlayerRef.RemoveSpell(DLC1VampiresGrip)
 
+  PlayerRef.DispelSpell(DLC1Revert)
+  PlayerRef.DispelSpell(DLC1SupernaturalReflexes)
   PlayerRef.DispelSpell(DLC1VampireDetectLife)
   PlayerRef.DispelSpell(DLC1VampireMistform)
-  PlayerRef.DispelSpell(DLC1SupernaturalReflexes)
-  PlayerRef.DispelSpell(DLC1Revert)
   PlayerRef.DispelSpell(VampireHuntersSight)
 
+  ; Remove Vampire Lord VFX.
   PlayerRef.RemoveSpell(DLC1AbVampireFloatBodyFX)
 
   ; Restore current stage vampirism.
@@ -695,22 +692,20 @@ Function Shutdown()
   Actor PlayerRef = Game.GetPlayer()
   ShuttingDown = True
 
-  ; Player is no longer enemy of vampire hate factions.
-  VampireHateFactionsSetPlayerEnemy(False)
-
-  ; Remove player from the Vampire Lord faction.
-  PlayerRef.RemoveFromFaction(DLC1PlayerVampireLordFaction)
+  ; Player should no longer be attacked on sight.
+  VampireLordSetHate(False)
 
   ; And you're now recognized.
   Game.SetPlayerReportCrime(True)
 
-  ; The player is no longer a vampire lord.
+  ; The player is no longer a Vampire Lord and so is not levitating.
   DCL1VampireLevitateStateGlobal.SetValue(0)
 
   ; We always have to call this in Shutdown, or the spell loaded counts will
-  ; get out of synch.
+  ; get out of sync.
   PlayerRef.RemoveSpell(VampireHuntersSight)
 
+  ; Unload all Vampire Lord spells.
   UnloadSpells()
 
   ; Reset vampire item status variables and re-equip any that were equipped
@@ -740,60 +735,11 @@ Function Shutdown()
   PlayerRef.RemovePerk(DLC1VampireActivationBlocker)
   Game.SetBeastForm(False)
   Game.ShowFirstPersonGeometry(True)
-  PostRevertEnablePlayerControls()
   Game.EnableFastTravel(True)
-  Game.SetInChargen(False, False, False)
+  PostRevertEnablePlayerControls()
 
   ; Stop the quest.
   Stop()
-
-EndFunction
-
-Function VampireHateFactionsSetPlayerEnemy(Bool Enemy = True)
-{
-  Set whether the player should be an enemy of vampire hate factions.
-}
-
-  Game.GetPlayer().SetAttackActorOnSight(Enemy)
-
-  Int Index = DLC1VampireHateFactions.GetSize()
-
-  While Index
-    Index -= 1
-    (DLC1VampireHateFactions.GetAt(Index) as Faction).SetPlayerEnemy(Enemy)
-  EndWhile
-
-EndFunction
-
-Function RegisterForEvents()
-{
-  Register for all of the animation events we care about.
-}
-
-  Actor PlayerRef = Game.GetPlayer()
-
-  RegisterForAnimationEvent(PlayerRef, Ground)
-  RegisterForAnimationEvent(PlayerRef, Levitate)
-  RegisterForAnimationEvent(PlayerRef, BiteStart)
-  RegisterForAnimationEvent(PlayerRef, LiftoffStart)
-  RegisterForAnimationEvent(PlayerRef, LandStart)
-  RegisterForAnimationEvent(PlayerRef, TransformToHuman)
-
-EndFunction
-
-Function UnregisterForEvents()
-{
-  Unregister for all registered animation events.
-}
-
-  Actor PlayerRef = Game.GetPlayer()
-
-  UnRegisterForAnimationEvent(PlayerRef, Ground)
-  UnRegisterForAnimationEvent(PlayerRef, Levitate)
-  UnRegisterForAnimationEvent(PlayerRef, BiteStart)
-  UnRegisterForAnimationEvent(PlayerRef, LiftoffStart)
-  UnRegisterForAnimationEvent(PlayerRef, LandStart)
-  UnRegisterForAnimationEvent(PlayerRef, TransformToHuman)
 
 EndFunction
 
@@ -856,14 +802,29 @@ Function CheckPerkSpells()
 
   Actor PlayerRef = Game.GetPlayer()
 
-  If PlayerRef.HasPerk(DLC1MistformPerk) \
-      && !PlayerRef.HasSpell(DLC1VampireMistform)
-    PlayerRef.AddSpell(DLC1VampireMistform, False)
+  If PlayerRef.HasPerk(DLC1CorpseCursePerk) \
+      && !PlayerRef.HasSpell(DLC1CorpseCurse)
+    PlayerRef.AddSpell(DLC1CorpseCurse, False)
   EndIf
 
   If PlayerRef.HasPerk(DLC1DetectLifePerk) \
       && !PlayerRef.HasSpell(DLC1VampireDetectLife)
     PlayerRef.AddSpell(DLC1VampireDetectLife, False)
+  EndIf
+
+  If PlayerRef.HasPerk(DLC1GargoylePerk) \
+      && !PlayerRef.HasSpell(DLC1ConjureGargoyleLeftHand)
+    PlayerRef.AddSpell(DLC1ConjureGargoyleLeftHand, False)
+  EndIf
+
+  If PlayerRef.HasPerk(DLC1MistformPerk) \
+      && !PlayerRef.HasSpell(DLC1VampireMistform)
+    PlayerRef.AddSpell(DLC1VampireMistform, False)
+  EndIf
+
+  If PlayerRef.HasPerk(DLC1NightCloakPerk) \
+      && !PlayerRef.HasSpell(DLC1NightCloak)
+    PlayerRef.AddSpell(DLC1NightCloak, False)
   EndIf
 
   If PlayerRef.HasPerk(DLC1SupernaturalReflexesPerk) \
@@ -876,19 +837,92 @@ Function CheckPerkSpells()
     PlayerRef.AddSpell(DLC1VampiresGrip, False)
   EndIf
 
-  If PlayerRef.HasPerk(DLC1CorpseCursePerk) \
-      && !PlayerRef.HasSpell(DLC1CorpseCurse)
-    PlayerRef.AddSpell(DLC1CorpseCurse, False)
+EndFunction
+
+Function DispelSummons()
+{
+  Dispel summoning spells, such as from the school of conjuration or werewolf
+  form.
+}
+
+  Actor PlayerRef = Game.GetPlayer()
+  Int Count = VampireDispelList.GetSize()
+
+  While Count
+    Count -= 1
+    Spell SpellToDispel = VampireDispelList.GetAt(Count) as Spell
+
+    If SpellToDispel != None
+      PlayerRef.DispelSpell(SpellToDispel)
+    EndIf
+  EndWhile
+
+EndFunction
+
+Function VampireLordSetHate(Bool Hate = True)
+{
+  Set whether the player should be an enemy of vampire hate factions.
+}
+
+  Actor PlayerRef = Game.GetPlayer()
+
+  ; Add the player to the vampire lord faction.
+  If Hate
+    PlayerRef.AddToFaction(DLC1PlayerVampireLordFaction)
+  Else
+    PlayerRef.RemoveFromFaction(DLC1PlayerVampireLordFaction)
   EndIf
 
-  If PlayerRef.HasPerk(DLC1GargoylePerk) \
-      && !PlayerRef.HasSpell(DLC1ConjureGargoyleLeftHand)
-    PlayerRef.AddSpell(DLC1ConjureGargoyleLeftHand, False)
-  EndIf
+  Int Index = DLC1VampireHateFactions.GetSize()
 
-  If PlayerRef.HasPerk(DLC1NightCloakPerk) \
-      && !PlayerRef.HasSpell(DLC1NightCloak)
-    PlayerRef.AddSpell(DLC1NightCloak, False)
+  While Index
+    Index -= 1
+    (DLC1VampireHateFactions.GetAt(Index) as Faction).SetPlayerEnemy(Hate)
+  EndWhile
+
+  PlayerRef.SetAttackActorOnSight(Hate)
+
+EndFunction
+
+Function RegisterForEvents()
+{
+  Register for all of the animation events we care about.
+}
+
+  Actor PlayerRef = Game.GetPlayer()
+
+  RegisterForAnimationEvent(PlayerRef, Ground)
+  RegisterForAnimationEvent(PlayerRef, Levitate)
+  RegisterForAnimationEvent(PlayerRef, BiteStart)
+  RegisterForAnimationEvent(PlayerRef, LiftoffStart)
+  RegisterForAnimationEvent(PlayerRef, LandStart)
+  RegisterForAnimationEvent(PlayerRef, TransformToHuman)
+
+EndFunction
+
+Function UnregisterForEvents()
+{
+  Unregister for all registered animation events.
+}
+
+  Actor PlayerRef = Game.GetPlayer()
+
+  UnRegisterForAnimationEvent(PlayerRef, Ground)
+  UnRegisterForAnimationEvent(PlayerRef, Levitate)
+  UnRegisterForAnimationEvent(PlayerRef, BiteStart)
+  UnRegisterForAnimationEvent(PlayerRef, LiftoffStart)
+  UnRegisterForAnimationEvent(PlayerRef, LandStart)
+  UnRegisterForAnimationEvent(PlayerRef, TransformToHuman)
+
+EndFunction
+
+Function HandleEquippedPower(Spell EquippedPower)
+{
+  Called from DLC1PlayerVampireScript when the player equips a power.
+}
+
+  If EquippedPower != DLC1Revert
+    LastEquippedPower = EquippedPower
   EndIf
 
 EndFunction
@@ -919,9 +953,9 @@ Function PreloadSpells()
 
   LeveledDrainSpell.Preload()
   LeveledRaiseDeadSpell.Preload()
-  DLC1VampiresGrip.Preload()
   DLC1ConjureGargoyleLeftHand.Preload()
   DLC1CorpseCurse.Preload()
+  DLC1VampiresGrip.Preload()
 
 EndFunction
 
@@ -933,29 +967,9 @@ Function UnloadSpells()
 
   LeveledDrainSpell.Unload()
   LeveledRaiseDeadSpell.Unload()
-  DLC1VampiresGrip.Unload()
   DLC1ConjureGargoyleLeftHand.Unload()
   DLC1CorpseCurse.Unload()
-
-EndFunction
-
-Function DispelSummons()
-{
-  Dispel summoning spells, such as from the school of conjuration or werewolf
-  form.
-}
-
-  Actor PlayerRef = Game.GetPlayer()
-  Int Count = VampireDispelList.GetSize()
-
-  While Count
-    Count -= 1
-    Spell SpellToDispel = VampireDispelList.GetAt(Count) as Spell
-
-    If SpellToDispel != None
-      PlayerRef.DispelSpell(SpellToDispel)
-    EndIf
-  EndWhile
+  DLC1VampiresGrip.Unload()
 
 EndFunction
 
@@ -963,6 +977,8 @@ Function PreTransformDisablePlayerControls()
 {
   Disable controls during the transformation.
 }
+
+  Game.SetInChargen(True, True, False)
 
   Game.DisablePlayerControls( \
       abMovement = True, \
@@ -989,6 +1005,8 @@ Function PostRevertEnablePlayerControls()
       abJournalTabs = True, \
       aiDisablePOVType = 1)
 
+  Game.SetInChargen(False, False, False)
+
 EndFunction
 
 Function VampireLordEnablePlayerControls()
@@ -1013,6 +1031,8 @@ Function VampireLordEnablePlayerControls()
       abActivate = False, \
       abJournalTabs = False, \
       aiDisablePOVType = 1)
+
+  Game.SetInChargen(False, False, False)
 
 EndFunction
 

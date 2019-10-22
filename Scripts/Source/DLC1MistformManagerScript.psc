@@ -1,14 +1,13 @@
 Scriptname DLC1MistformManagerScript extends ReferenceAlias
 
-GlobalVariable Property DLC1MistformCount Auto
-
 Race Property VampireLordRace Auto
 
 Spell Property DLC1VampireMistform Auto
-Spell Property CurrentEquippedPower Auto
 
 Message Property DLC1MistformWaitMessage Auto
 Message Property DLC1MistformReadyMessage Auto
+
+GlobalVariable Property DLC1MistformCount Auto
 
 Float Property MistformCooldown Auto
 
@@ -26,6 +25,7 @@ Event OnSpellCast(Form akSpellCast)
     DLC1MistformCount.Value += 1
 
     If DLC1MistformCount.Value >= MistformMaxUses
+      DLC1MistformWaitMessage.Show()
       PlayerRef.RemoveSpell(DLC1VampireMistform)
     EndIf
   EndIf
