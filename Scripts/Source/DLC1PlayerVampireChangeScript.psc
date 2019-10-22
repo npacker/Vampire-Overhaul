@@ -454,17 +454,16 @@ Function InitialShift()
     DLC1nVampireNecklaceGargoyle.SetValue(1)
   EndIf
 
+  ; Apply image space modifier.
+  VampireWarn.Apply()
+
   ; Remove player's inventory prior to race change, causing them to be naked
   ; when they change back.
   PlayerRef.UnequipAll()
 
-  VampireWarn.Apply()
-
   ; Initialize the full shift by triggering the OnRaceSwitchComplete() event in
   ; DLC1PlayerVampireScript.
   PlayerRef.SetRace(DLC1VampireBeastRace)
-
-  PlayerRef.AddSpell(DLC1AbVampireFloatBodyFX, abVerbose = False)
 
 EndFunction
 
@@ -480,16 +479,24 @@ Function StartTracking()
   TrackingStarted = True
   Actor PlayerRef = Game.GetPlayer()
 
+  ; Add levitation VFX.
+  PlayerRef.AddSpell(DLC1AbVampireFloatBodyFX, abVerbose = False)
+
   ; Register for animation events now. This function is called after the race
   ; switch is complete, and the behavior graph changes during that time. If we
   ; register for events while the change is happening, one or more events might
   ; get un-registered when the player's behavior graph changes and we won't get
   ; events for it.
-  DCL1VampireLevitateStateGlobal.SetValue(1)
   RegisterForEvents()
 
   ; Equip the vampire lord armor.
-  ; PlayerRef.EquipItem(DLC1ClothesVampireLordArmor, False, True)
+  ; Int VampireLordArmorCount = PlayerRef.GetItemCount(DLC1ClothesVampireLordArmor)
+  ;
+  ; If VampireLordArmorCount == 0
+  ;   PlayerRef.AddItem(DLC1ClothesVampireLordArmor, 1, abSilent = True)
+  ; EndIf
+  ;
+  ; PlayerRef.EquipItem(DLC1ClothesVampireLordArmor, abPreventRemoval = True, abSilent = True)
 
   ; Cause the player to be attacked on sight.
   VampireLordSetHate(True)
@@ -509,21 +516,25 @@ Function StartTracking()
   PlayerRef.RemoveSpell(VampireSunDamage03)
   PlayerRef.RemoveSpell(VampireSunDamage04)
 
-  ; Add Vampire Lord Abilities.
-  PlayerRef.AddSpell(DLC1VampireBats, False)
+  ; Replace with Vampire Lord version of sun damage.
   PlayerRef.AddSpell(DLC1VampireLordSunDamage, False)
+
+  ; Add Vampire Lord leveled abilities.
   PlayerRef.AddSpell(LeveledAbility, False)
+
+  ; Add base Vampire Lord powers.
+  PlayerRef.AddSpell(DLC1VampireBats, False)
   PlayerRef.AddSpell(VampireHuntersSight, False)
 
   ; Add the Revert power.
   PlayerRef.AddSpell(DLC1Revert, False)
 
-  ; Default power is Bats.
+  ; Default power is Bats if none was previously equipped.
   If (DialogueGenericVampire as VampireQuestScript).LastPower == None
     (DialogueGenericVampire as VampireQuestScript).LastPower = DLC1VampireBats
   EndIf
 
-  ; Equip the last spell the player had equipped as a vampire lord.
+  ; Equip the last power the player had equipped as a vampire lord.
   PlayerRef.EquipSpell((DialogueGenericVampire as VampireQuestScript).LastPower, 2)
 
   ; Verify the player has all perk-enabled spells.
@@ -540,12 +551,12 @@ Function StartTracking()
   ; Ensure the Vampire Lord change ability has been removed.
   PlayerRef.DispelSpell(DLC1VampireChange)
 
-  ; Re-enable controls, saving and waiting.
-  VampireLordEnablePlayerControls()
-
   ; We're done with the transformation handling. Player is now free to roam as a
   ; Vampire Lord.
   SetStage(10)
+
+  ; Re-enable controls, saving and waiting.
+  VampireLordEnablePlayerControls()
 
 EndFunction
 
@@ -603,12 +614,12 @@ Function ActuallyShiftBackIfNecessary()
   ; a Levitate event after we've set DLC1VampireLevitateStateGlobal to 1, and
   ; the value would be incorrect.
   UnregisterForEvents()
-  DCL1VampireLevitateStateGlobal.SetValue(1)
 
   If PlayerRef.IsDead()
     Return
   EndIf
 
+  ; Apply revert screen effects and sound.
   VampireChange.Apply()
   VampireIMODSound.Play(PlayerRef)
 
@@ -629,6 +640,26 @@ Function ActuallyShiftBackIfNecessary()
 
   ; Save LastEquippedPower to re-equip when returning to Vampire Lord form.
   (DialogueGenericVampire as VampireQuestScript).LastPower = LastEquippedPower
+
+  ; Ensure the player can't die if they have lost a greater amount of health
+  ; than they have in their normal form.
+  Float CurrentHealth = PlayerRef.GetAV("health")
+
+  If CurrentHealth <= 100
+    PlayerRef.RestoreAV("health", 100 - CurrentHealth)
+  EndIf
+
+  Float CurrentStamina = PlayerRef.GetAV("stamina")
+
+  If CurrentStamina <= 100
+    PlayerRef.RestoreAV("stamina", 100 - CurrentStamina)
+  EndIf
+
+  Float CurrentMagicka = PlayerRef.GetAV("magicka")
+
+  If CurrentMagicka <= 100
+    PlayerRef.RestoreAV("magicka", 100 - CurrentMagicka)
+  EndIf
 
   ; Clear out perks/abilities.
   PlayerRef.RemoveSpell(LeveledAbility)
@@ -655,18 +686,14 @@ Function ActuallyShiftBackIfNecessary()
   ; Remove Vampire Lord VFX.
   PlayerRef.RemoveSpell(DLC1AbVampireFloatBodyFX)
 
-  ; Restore current stage vampirism.
+  ; Refresh current vamprie stage, which will restore all normal vampire
+  ; abilities.
   PlayerVampireQuest.VampireProgression(PlayerRef, PlayerVampireQuest.VampireStatus, Verbose = False)
 
-  ; Make sure your health is reasonable before turning you back.
-  Float CurrentHealth = PlayerRef.GetAV("health")
-
-  If CurrentHealth <= 70
-    PlayerRef.RestoreAV("health", 70 - CurrentHealth)
-  EndIf
-
   ; Remove vampire lord armor.
-  ; PlayerRef.RemoveItem(DLC1ClothesVampireLordArmor, 2, True)
+  ; Int VampireLordArmorCount = PlayerRef.GetItemCount(DLC1ClothesVampireLordArmor)
+  ;
+  ; PlayerRef.RemoveItem(DLC1ClothesVampireLordArmor, aiCount = VampireLordArmorCount, abSilent = True)
 
   ; Switch back the player race. This will call OnRaceSwitchComplete() on the
   ; DLC1PlayerVampireScript, which will in turn invoke Shutdown() on this
@@ -698,18 +725,7 @@ Function Shutdown()
   ; And you're now recognized.
   Game.SetPlayerReportCrime(True)
 
-  ; The player is no longer a Vampire Lord and so is not levitating.
-  DCL1VampireLevitateStateGlobal.SetValue(0)
-
-  ; We always have to call this in Shutdown, or the spell loaded counts will
-  ; get out of sync.
-  PlayerRef.RemoveSpell(VampireHuntersSight)
-
-  ; Unload all Vampire Lord spells.
-  UnloadSpells()
-
-  ; Reset vampire item status variables and re-equip any that were equipped
-  ; before transformation.
+  ; Re-equip vampire items that were equipped before transformation.
   If DLC1nVampireNecklaceBats.Value == 1
     PlayerRef.EquipItem(DLC1nVampireNightPowerNecklaceBats, abPreventRemoval = False, abSilent = True)
   EndIf
@@ -726,10 +742,21 @@ Function Shutdown()
     PlayerRef.EquipItem(DLC1nVampireBloodMagicRingErudite, abPreventRemoval = False, abSilent = True)
   EndIf
 
+  ; Reset vampire item status variables.
   DLC1nVampireNecklaceBats.SetValue(0)
   DLC1nVampireNecklaceGargoyle.SetValue(0)
   DLC1nVampireRingBeast.SetValue(0)
   DLC1nVampireRingErudite.SetValue(0)
+
+  ; We always have to call this in Shutdown, or the spell loaded counts will
+  ; get out of sync.
+  PlayerRef.RemoveSpell(VampireHuntersSight)
+
+  ; Unload all Vampire Lord spells.
+  UnloadSpells()
+
+  ; The player is no longer a Vampire Lord and so is not levitating.
+  DCL1VampireLevitateStateGlobal.SetValue(0)
 
   ; Remove UI restrictions.
   PlayerRef.RemovePerk(DLC1VampireActivationBlocker)
@@ -891,6 +918,8 @@ Function RegisterForEvents()
 
   Actor PlayerRef = Game.GetPlayer()
 
+  DCL1VampireLevitateStateGlobal.SetValue(1)
+
   RegisterForAnimationEvent(PlayerRef, Ground)
   RegisterForAnimationEvent(PlayerRef, Levitate)
   RegisterForAnimationEvent(PlayerRef, BiteStart)
@@ -913,6 +942,8 @@ Function UnregisterForEvents()
   UnRegisterForAnimationEvent(PlayerRef, LiftoffStart)
   UnRegisterForAnimationEvent(PlayerRef, LandStart)
   UnRegisterForAnimationEvent(PlayerRef, TransformToHuman)
+
+  DCL1VampireLevitateStateGlobal.SetValue(1)
 
 EndFunction
 

@@ -82,11 +82,11 @@ Function Transform()
 }
 
   Actor PlayerRef = Game.GetPlayer()
-  Race TargetRace = TargetRef.GetRace()
+  Race CurrentRace = TargetRef.GetRace()
 
-  If TargetRace != DLC1VampireLordRace
+  If CurrentRace != DLC1VampireLordRace
     If TargetRef == PlayerRef
-      DLC1VampireLordTrackingQuest.PlayerRace = TargetRace
+      DLC1VampireLordTrackingQuest.PlayerRace = CurrentRace
       DLC1PlayerVampireQuest.SetStage(1)
     Else
       TargetRef.SetRace(DLC1VampireLordRace)

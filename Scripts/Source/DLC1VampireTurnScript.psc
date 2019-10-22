@@ -21,37 +21,15 @@ ReferenceAlias Property NewVampire3 Auto
 ReferenceAlias Property NewVampire4 Auto
 ReferenceAlias Property NewVampire5 Auto
 
-Race Property ArgonianRace Auto
-Race Property BretonRace Auto
-Race Property DarkElfRace Auto
-Race Property ElderRace Auto
-Race Property HighElfRace Auto
-Race Property ImperialRace Auto
-Race Property KhajiitRace Auto
-Race Property NordRace Auto
-Race Property OrcRace Auto
-Race Property RedguardRace Auto
-Race Property WoodElfRace Auto
-
-Race Property ArgonianRaceVampire Auto
-Race Property BretonRaceVampire Auto
-Race Property DarkElfRaceVampire Auto
-Race Property ElderRaceVampire Auto
-Race Property HighElfRaceVampire Auto
-Race Property ImperialRaceVampire Auto
-Race Property KhajiitRaceVampire Auto
-Race Property NordRaceVampire Auto
-Race Property OrcRaceVampire Auto
-Race Property RedguardRaceVampire Auto
-Race Property WoodElfRaceVampire Auto
-
 Faction Property DLC1PlayerTurnedVampire Auto
-Faction Property DLC1RV07ThankFaction Auto
-Faction Property DLC1RV07CoffinOwnerFaction Auto
 Faction Property DLC1PotentialVampireFaction Auto
+Faction Property DLC1RV07CoffinOwnerFaction Auto
+Faction Property DLC1RV07ThankFaction Auto
 
 Quest Property DLC1RV06 Auto
 Quest Property DLC1RV07 Auto
+Quest Property DLC1VQ02 Auto
+Quest Property DLC1VQ03Vampire Auto
 
 ReferenceAlias Property DLC1RV06Spouse Auto
 ReferenceAlias Property DLC1RV07Candidate Auto
@@ -59,27 +37,29 @@ ReferenceAlias Property DLC1VQ03VampireDexion Auto
 
 Perk Property DLC1VampireTurnPerk Auto
 
-Spell Property DLC1VampireCalm Auto
-
 Spell Property DLC1VampireChange Auto
 Spell Property DLC1VampireChangeFX Auto
 
+Idle Property DLC1PairEnd Auto
 Idle Property IdleVampireStandingFeedFront_Loose Auto
 Idle Property pa_VampireLordChangePlayer Auto
 
-Quest Property DLC1VQ02 Auto
-Quest Property DLC1VQ03Vampire Auto
-
 Race Property DLC1VampireBeastRace Auto
+Race Property DLC1HarkonRace Auto
+
+Actor Property DLC1HarknonActorRef Auto
 
 Armor Property DLC1ClothesVampireLordRoyalArmor Auto
 Armor Property DLC1VampireLordCape Auto
-Actor Property DLC1HarknonActorRef Auto
 
-ObjectReference Property DLC1VQ02PlayerWakeupMarker Auto
+Outfit Property DLC1HarkonOutfit Auto
+Outfit Property DLC1HarkonDummyOutfit Auto
+
 ObjectReference Property DLC1VQ02HarkonWakeupMarker Auto
+ObjectReference Property DLC1VQ02PlayerWakeupMarker Auto
 ObjectReference Property DLC1VQ02PlayerWakeupMarkerReject Auto
 
+ImageSpaceModifier Property DLC1HarkonBiteFadeToBlackImod Auto
 ImageSpaceModifier Property FadeToBlackImod Auto
 ImageSpaceModifier Property SleepyTimeFadeIn Auto
 
@@ -87,18 +67,11 @@ CompanionsHousekeepingScript Property C00 Auto
 
 ReferenceAlias Property DisguisedVampireLordName Auto
 
-ImageSpaceModifier Property DLC1HarkonBiteFadeToBlackImod Auto
-
-Outfit Property DLC1HarkonOutfit Auto
-Outfit Property DLC1HarkonDummyOutfit Auto
-
 TextureSet Property EyesMaleHumanVampire01 Auto
 
 GlobalVariable Property DLC1VampireFeedStartTime Auto
 
 Keyword Property DLC1VampireFeedBystanderStart Auto
-
-Idle Property DLC1PairEnd Auto
 
 ;-------------------------------------------------------------------------------
 ;
@@ -247,59 +220,15 @@ Function MakeMyEyesRed(ReferenceAlias AliasWhoseActorToGiveRedEyes)
 
 EndFunction
 
-Race Function GetVampireRace(Actor ActorToTurn)
-{
-  Used to change NPC race - doesn't work as intended.
-}
-
-  Race ReturnRace
-  Race myRace = ActorToTurn.GetRace()
-
-  If myRace == ArgonianRace
-    ReturnRace = ArgonianRaceVampire
-  ElseIf myRace == BretonRace
-    ReturnRace = BretonRaceVampire
-  ElseIf myRace == DarkElfRace
-    ReturnRace =  DarkElfRaceVampire
-  ElseIf myRace == ElderRace
-    ReturnRace =  ElderRaceVampire
-  ElseIf myRace == HighElfRace
-    ReturnRace =  HighElfRaceVampire
-  ElseIf myRace == ImperialRace
-    ReturnRace =  ImperialRaceVampire
-  ElseIf myRace == KhajiitRace
-    ReturnRace =  KhajiitRaceVampire
-  ElseIf myRace == NordRace
-    ReturnRace =  NordRaceVampire
-  ElseIf myRace == OrcRace
-    ReturnRace =  OrcRaceVampire
-  ElseIf myRace == RedguardRace
-    ReturnRace =  RedguardRaceVampire
-  ElseIf myRace == WoodElfRace
-    ReturnRace =  WoodElfRaceVampire
-  Else
-    ReturnRace = None
-  Endif
-
-  Return ReturnRace
-
-EndFunction
-
 Function HarkonBitesPlayer(Bool isPlayerRecieveingHarkonsGift = True)
 
   Actor PlayerRef = Game.GetPlayer()
 
   DLC1HarkonBiteFadeToBlackImod.Apply()
 
-  ; Fade to black.
   If isPlayerRecieveingHarkonsGift
+    ; Player accepts gift.
     ReceiveHarkonsGift(DLC1HarknonActorRef, PlayStandardBiteAnim = False)
-  Else
-    ; **PLAY RED**
-  Endif
-
-  ; Move player to coffin and make vampire and move harkon to player.
-  If isPlayerRecieveingHarkonsGift
     PlayerRef.PlayIdle(DLC1PairEnd)
     PlayerRef.MoveTo(DLC1VQ02PlayerWakeupMarker)
     HarkonChangeBackFromVampireLord()
@@ -307,6 +236,7 @@ Function HarkonBitesPlayer(Bool isPlayerRecieveingHarkonsGift = True)
     DLC1HarkonBiteFadeToBlackImod.PopTo(SleepyTimeFadeIn)
     DLC1VQ02.SetStage(40)
   Else
+    ; Player rejects gift.
     Utility.Wait(5.0)
     PlayerRef.MoveTo(DLC1VQ02PlayerWakeupMarkerReject)
     DLC1HarkonBiteFadeToBlackImod.PopTo(SleepyTimeFadeIn)
@@ -317,7 +247,8 @@ EndFunction
 
 Function ReceiveHarkonsGift(Actor GiftGiver, Bool IsSeranaGiving = False, Bool PlayStandardBiteAnim = True)
 {
-  Used when player is transformed into Vampire by Harkon.
+  Called from HarkonBitesPlayer() if player accepts gift. Also called if Serana
+  makes player a Vampire Lord.
 }
 
   Actor PlayerRef = Game.GetPlayer()
@@ -362,21 +293,13 @@ Function ReceiveSeranasGift(Actor GiftGiver)
 EndFunction
 
 Function NPCTransformIntoVampireLord(Actor ActorToTurn, Bool RoyalOutfit = False, Bool HarkonForceGreet = False)
+{
+  Called from DLC1VQ02HarkonTransformTopic1.
+}
 
-  ; ActorToTurn.SetRace(DLC1VampireBeastRace)
+  DLC1HarkonRace = ActorToTurn.GetActorBase().GetRace()
 
-  ; Set the race.
   DLC1VampireChangeFX.Cast(ActorToTurn, ActorToTurn)
-
-  If RoyalOutfit
-    ActorToTurn.EquipItem(DLC1ClothesVampireLordRoyalArmor, abPreventRemoval = True)
-    ActorToTurn.EquipItem(DLC1VampireLordCape, abPreventRemoval = True)
-  Endif
-
-  ; If HarkonForceGreet
-    ; Enabled in HarkonChangedRace.
-    ; Game.DisablePlayerControls()
-  ; Endif
 
 EndFunction
 
@@ -385,18 +308,31 @@ Function HarkonChangedRace()
   Called by DLC1VQ02HarkonScript attached to DLC1VQ02 Harkon Alias.
 }
 
+  Int VampireLordArmorCount = DLC1HarknonActorRef.GetItemCount(DLC1ClothesVampireLordRoyalArmor)
+  Int VampireLordCapeCount = DLC1HarknonActorRef.GetItemCount(DLC1VampireLordCape)
+
   ; Assumes the first time he transforms is to set this stage.
   If !DLC1VQ02.GetStageDone(15)
-    ; Game.EnablePlayerControls()
     ; Causes Harkon to forcegreet player.
     DLC1VQ02.SetStage(15)
     DLC1HarknonActorRef.EvaluatePackage()
   Endif
 
   ; When Harkon reverts back from being a Vampire Lord, fix his clothing.
-  If DLC1HarknonActorRef.GetRace() != DLC1VampireBeastRace
-    DLC1HarknonActorRef.RemoveItem(DLC1ClothesVampireLordRoyalArmor, 999)
-    DLC1HarknonActorRef.RemoveItem(DLC1VampireLordCape, 999)
+  If DLC1HarknonActorRef.GetRace() == DLC1VampireBeastRace
+    If VampireLordArmorCount == 0
+      DLC1HarknonActorRef.AddItem(DLC1ClothesVampireLordRoyalArmor, 1, abSilent = True)
+    EndIf
+
+    If VampireLordCapeCount == 0
+      DLC1HarknonActorRef.AddItem(DLC1VampireLordCape, 1, abSilent = True)
+    EndIf
+
+    DLC1HarknonActorRef.EquipItem(DLC1ClothesVampireLordRoyalArmor, abPreventRemoval = False, abSilent = True)
+    DLC1HarknonActorRef.EquipItem(DLC1VampireLordCape, abPreventRemoval = False, abSilent = True)
+  Else
+    DLC1HarknonActorRef.RemoveItem(DLC1ClothesVampireLordRoyalArmor, VampireLordArmorCount)
+    DLC1HarknonActorRef.RemoveItem(DLC1VampireLordCape, VampireLordCapeCount)
     DLC1HarknonActorRef.SetOutfit(DLC1HarkonDummyOutfit)
     DLC1HarknonActorRef.SetOutfit(DLC1HarkonOutfit)
   Endif
@@ -404,8 +340,11 @@ Function HarkonChangedRace()
 EndFunction
 
 Function HarkonChangeBackFromVampireLord()
+{
+  Called from HarkonBitesPlayer().
+}
 
-  DLC1HarknonActorRef.SetRace(NordRace)
+  DLC1HarknonActorRef.SetRace(DLC1HarkonRace)
 
 EndFunction
 
@@ -417,5 +356,18 @@ Function NameVampireLord(Actor ActorToRename)
   SetStage(10)
   DisguisedVampireLordName.ForceRefTo(ActorToRename)
   DisguisedVampireLordName.Clear()
+
+EndFunction
+
+;-------------------------------------------------------------------------------
+; OBSOLETE FUNCTIONS
+;-------------------------------------------------------------------------------
+
+Race Function GetVampireRace(Actor ActorToTurn)
+{
+  Used to change NPC race - doesn't work as intended.
+}
+
+  Return None
 
 EndFunction

@@ -1,17 +1,14 @@
 Scriptname DLC1PlayerVampireScript extends ReferenceAlias
 
-Race Property VampireLordRace Auto
+Race Property DLC1VampireBeastRace Auto
 
 Spell Property DLC1VampireBats Auto
+Spell Property DLC1SupernaturalReflexes Auto
+Spell Property DLC1VampireMistform Auto
 
-Message Property DLC1BatsWaitMessage Auto
-Message Property DLC1BatsReadyMessage Auto
-
-GlobalVariable Property DLC1BatsCount Auto
-
-Float Property BatsCooldown Auto
-
-Int Property BatsMaxUses Auto
+GlobalVariable Property DLC1BatsCooldown Auto
+GlobalVariable Property DLC1MistformCooldown Auto
+GlobalVariable Property DLC1ReflexesCooldown Auto
 
 Spell Property CurrentEquippedPower Auto
 
@@ -28,7 +25,11 @@ Event OnRaceSwitchComplete()
   PlayerRef.SetGhost(False)
   PlayerRef.GetActorBase().SetInvulnerable(False)
 
-  If PlayerRef.GetRace() == VampireLordRace
+  DLC1BatsCooldown.Value = 0
+  DLC1MistformCooldown.Value = 0
+  DLC1ReflexesCooldown.Value = 0
+
+  If PlayerRef.GetRace() == DLC1VampireBeastRace
     (GetOwningQuest() as DLC1PlayerVampireChangeScript).StartTracking()
   Else
     (GetOwningQuest() as DLC1PlayerVampireChangeScript).Shutdown()
@@ -36,61 +37,37 @@ Event OnRaceSwitchComplete()
 
 EndEvent
 
-Event OnObjectEquipped(Form BaseObject, ObjectReference Reference)
+Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
 
   Actor PlayerRef = GetReference() as Actor
 
   CurrentEquippedPower = PlayerRef.GetEquippedSpell(2)
 
-  If CurrentEquippedPower && (BaseObject == CurrentEquippedPower)
+  If CurrentEquippedPower && (akBaseObject == CurrentEquippedPower)
     (GetOwningQuest() as DLC1PlayerVampireChangeScript).HandleEquippedPower(CurrentEquippedPower)
   EndIf
 
 EndEvent
 
-Event OnObjectUnequipped(Form BaseObject, ObjectReference Reference)
+Event OnObjectUnequipped(Form akBaseObject, ObjectReference akReference)
 
   Actor PlayerRef = GetReference() as Actor
 
-  If BaseObject == CurrentEquippedPower
+  If akBaseObject == DLC1VampireBats && DLC1BatsCooldown
+    Return
+  EndIf
+
+  If akBaseObject == DLC1VampireMistform && DLC1MistformCooldown
+    Return
+  EndIf
+
+  If akBaseObject == DLC1SupernaturalReflexes && DLC1ReflexesCooldown
+    Return
+  EndIf
+
+  If akBaseObject == CurrentEquippedPower
     CurrentEquippedPower = None
     (GetOwningQuest() as DLC1PlayerVampireChangeScript).HandleEquippedPower(None)
   EndIf
-
-EndEvent
-
-Event OnSpellCast(Form SpellCast)
-
-  Actor PlayerRef = GetReference() as Actor
-
-  If SpellCast == DLC1VampireBats
-    If DLC1BatsCount.Value == 0
-      RegisterForSingleUpdateGameTime(BatsCoolDown)
-    EndIf
-
-    DLC1BatsCount.Value += 1
-
-    If DLC1BatsCount.Value >= BatsMaxUses
-      DLC1BatsWaitMessage.Show()
-      GetActorRef().RemoveSpell(DLC1VampireBats)
-    EndIf
-  EndIf
-
-EndEvent
-
-Event OnUpdateGameTime()
-
-  Actor PlayerRef = GetReference() as Actor
-
-  If DLC1BatsCount.Value >= BatsMaxUses
-    DLC1BatsReadyMessage.Show()
-    GetActorRef().AddSpell(DLC1VampireBats, False)
-
-    If GetActorRef().GetEquippedSpell(2) == None
-      GetActorRef().EquipSpell(DLC1VampireBats, 2)
-    EndIf
-  EndIf
-
-  DLC1BatsCount.Value = 0
 
 EndEvent

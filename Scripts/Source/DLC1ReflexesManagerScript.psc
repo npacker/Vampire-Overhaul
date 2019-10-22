@@ -1,13 +1,12 @@
 Scriptname DLC1ReflexesManagerScript extends ReferenceAlias
 
-Race Property VampireLordRace Auto
-
 Spell Property DLC1SupernaturalReflexes Auto
 
 Message Property DLC1ReflexesWaitMessage Auto
 Message Property DLC1ReflexesReadyMessage Auto
 
 GlobalVariable Property DLC1ReflexesCount Auto
+GlobalVariable Property DLC1ReflexesCooldown Auto
 
 FLoat Property ReflexesCooldown Auto
 
@@ -26,6 +25,7 @@ Event OnSpellCast(Form akSpellCast)
 
     If DLC1ReflexesCount.Value >= ReflexesMaxUses
       DLC1ReflexesWaitMessage.Show()
+      DLC1ReflexesCooldown.Value = 1
       PlayerRef.RemoveSpell(DLC1SupernaturalReflexes)
     EndIf
   EndIf
@@ -38,6 +38,7 @@ Event OnUpdateGameTime()
 
   If  DLC1ReflexesCount.Value >= ReflexesMaxUses
     DLC1ReflexesReadyMessage.Show()
+    DLC1ReflexesCooldown.Value = 0
     PlayerRef.AddSpell(DLC1SupernaturalReflexes, False)
 
     If PlayerRef.GetEquippedSpell(2) == None
