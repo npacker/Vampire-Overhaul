@@ -36,10 +36,12 @@ Event OnUpdateGameTime()
 
   Actor PlayerRef = GetReference() as Actor
 
+  UnregisterForUpdateGameTime()
+
   If  DLC1ReflexesCount.Value >= ReflexesMaxUses
     DLC1ReflexesReadyMessage.Show()
     DLC1ReflexesCooldown.Value = 0
-    PlayerRef.AddSpell(DLC1SupernaturalReflexes, False)
+    PlayerRef.AddSpell(DLC1SupernaturalReflexes, abVerbose = False)
 
     If PlayerRef.GetEquippedSpell(2) == None
       PlayerRef.EquipSpell(DLC1SupernaturalReflexes, 2)

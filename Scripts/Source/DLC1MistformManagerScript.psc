@@ -36,6 +36,8 @@ Event OnUpdateGameTime()
 
   Actor PlayerRef = GetReference() as Actor
 
+  UnregisterForUpdateGameTime()
+
   If DLC1MistformCount.Value >= MistformMaxUses
     DLC1MistformReadyMessage.Show()
     DLC1MistformCooldown.Value = 0

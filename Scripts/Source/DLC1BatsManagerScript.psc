@@ -36,10 +36,12 @@ Event OnUpdateGameTime()
 
   Actor PlayerRef = GetReference() as Actor
 
+  UnregisterForUpdateGameTime()
+
   If DLC1BatsCount.Value >= BatsMaxUses
     DLC1BatsReadyMessage.Show()
     DLC1BatsCooldown.Value = 0
-    GetActorRef().AddSpell(DLC1VampireBats, False)
+    GetActorRef().AddSpell(DLC1VampireBats, abVerbose = False)
 
     If GetActorRef().GetEquippedSpell(2) == None
       GetActorRef().EquipSpell(DLC1VampireBats, 2)
