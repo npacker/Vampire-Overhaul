@@ -172,6 +172,9 @@ Spell Property DLC1VampireLordSunDamage Auto
 Perk Property LightFoot Auto
 { Light foot perk is automatically added to Vampire Lord. }
 
+Perk Property DLC1FallDamageReduction Auto
+{ Vampire Lord takes reduced fall damage. }
+
 Spell Property DLC1VampireChange Auto
 { The spell that allows the player to transform into a vampire lord. }
 
@@ -545,6 +548,9 @@ Function StartTracking()
     PlayerRef.AddPerk(Lightfoot)
   EndIf
 
+  ; Add fall damage reduction perk.
+  PlayerRef.AddPerk(DLC1FallDamageReduction)
+
   ; Ensure the Vampire Lord change ability has been removed.
   PlayerRef.DispelSpell(DLC1VampireChange)
 
@@ -628,6 +634,9 @@ Function ActuallyShiftBackIfNecessary()
   If !DLC1HasLightfoot
     PlayerRef.RemovePerk(Lightfoot)
   EndIf
+
+  ; Remove fall damage reduction.
+  PlayerRef.RemovePerk(DLC1FallDamageReduction)
 
   ; Save CurrentEquippedSpell to re-equip when returning to Vampire Lord form.
   CurrentEquippedSpell = PlayerRef.GetEquippedSpell(0)
