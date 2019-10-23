@@ -64,6 +64,9 @@ Float Property LastFeedTime
 
 EndProperty
 
+Actor Property PlayerRef Auto
+{ The Player. }
+
 GlobalVariable Property PlayerIsVampire Auto
 { Set to 1 if the player is a vampire, 0 otherwiese. }
 
@@ -105,9 +108,6 @@ ImageSpaceModifier Property VampireTransformIncreaseISMD Auto
 
 EffectShader Property VampireChangeFX Auto
 { Vampire transformation shader. }
-
-EffectShader Property HealMysticFXS Auto
-{ Cure transformation shader. }
 
 ReferenceAlias Property SoundMarkerRef Auto
 { Refernece Alias for tracking the sound marker. }
@@ -188,7 +188,7 @@ Event OnUpdateGameTime()
   Float TimeElapsed = GameDaysPassed.Value - LastUpdateTime
 
   If TimeElapsed >= 1.0
-    __StopFeedTimer()
+    VampireStopFeedTimer()
     RegisterForSingleUpdate(5.0)
   EndIf
 
@@ -199,9 +199,7 @@ Event OnUpdate()
   Handle an update of the feed timer.
 }
 
-  Actor PlayerRef = Game.GetPlayer()
-
-  If VampireSafeToUpdate(PlayerRef)
+  If VampireSafeToUpdate()
     Int NewStage = Property_VampireStatus + Math.Floor(GameDaysPassed.Value - LastUpdateTime)
 
     If NewStage > 4
@@ -209,7 +207,7 @@ Event OnUpdate()
     EndIf
 
     VampireProgression(PlayerRef, NewStage, NewStage != Property_VampireStatus)
-    __StartFeedTimer()
+    VampireStartFeedTimer()
   Else
     RegisterForSingleUpdate(5.0)
   EndIf
@@ -232,16 +230,15 @@ Function VampireFeed()
   EndIf
 
   Feeding = True
-  Actor PlayerRef = Game.GetPlayer()
   Bool RankUpdated = False
 
-  __StopFeedTimer()
+  VampireStopFeedTimer()
   VampireImageSpaceModifier()
 
   If Property_VampireStatus > 1
     Property_Feedings += 1
     Property_LastFeedTime = GameDaysPassed.Value
-    RankUpdated = VampireUpdateRank(PlayerRef)
+    RankUpdated = VampireUpdateRank()
 
     VampireFeedMessage.Show()
     VampireProgression(PlayerRef, 1)
@@ -251,7 +248,7 @@ Function VampireFeed()
     EndIf
   EndIf
 
-  __StartFeedTimer()
+  VampireStartFeedTimer()
 
   Feeding = False
 
@@ -269,7 +266,7 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
   Updating = True
 
   If !Transforming
-    __DisableMenu()
+    VampireDisableMenu()
   EndIf
 
   If NewStage >= 0 && NewStage <= 4
@@ -287,65 +284,65 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
     EndIf
   EndIf
 
-  Target.RemoveSpell(AbVampireSkills)
-  Target.RemoveSpell(AbVampireSkills02)
+  PlayerRef.RemoveSpell(AbVampireSkills)
+  PlayerRef.RemoveSpell(AbVampireSkills02)
 
-  VampireRemoveLeveledSpells(Target, VampireStrengthSpells)
+  VampireRemoveLeveledSpells(VampireStrengthSpells)
 
   If Property_VampireStatus == 0
-    Target.RemoveSpell(DLC1VampireChange)
+    PlayerRef.RemoveSpell(DLC1VampireChange)
 
-    Target.RemoveSpell(AbVampireChillTouch)
-    Target.RemoveSpell(VampireBloodMemory)
-    Target.RemoveSpell(VampireChampionOfTheNight)
-    Target.RemoveSpell(VampireNightstalker)
+    PlayerRef.RemoveSpell(AbVampireChillTouch)
+    PlayerRef.RemoveSpell(VampireBloodMemory)
+    PlayerRef.RemoveSpell(VampireChampionOfTheNight)
+    PlayerRef.RemoveSpell(VampireNightstalker)
 
-    Target.RemoveSpell(VampireInvisibilityPC)
-    Target.RemoveSpell(VampireMesmerizingGaze)
+    PlayerRef.RemoveSpell(VampireInvisibilityPC)
+    PlayerRef.RemoveSpell(VampireMesmerizingGaze)
 
-    VampireRemoveLeveledSpells(Target, VampireCharmSpells)
-    VampireRemoveLeveledSpells(Target, VampireRaiseThrallSpells)
+    VampireRemoveLeveledSpells(VampireCharmSpells)
+    VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
 
-    VampireRemoveLeveledSpells(Target, AbVampireRankSpells)
-    VampireRemoveLeveledSpells(Target, VampireClawsSpells)
-    VampireRemoveLeveledSpells(Target, VampireDrainSpells)
+    VampireRemoveLeveledSpells(AbVampireRankSpells)
+    VampireRemoveLeveledSpells(VampireClawsSpells)
+    VampireRemoveLeveledSpells(VampireDrainSpells)
 
-    VampireRemoveLeveledSpells(Target, AbVampireResistanceSpells)
-    VampireRemoveLeveledSpells(Target, AbVampireStageSpells)
-    VampireRemoveLeveledSpells(Target, AbVampireWeaknessSpells)
-    VampireRemoveLeveledSpells(Target, VampireSunDamageSpells)
+    VampireRemoveLeveledSpells(AbVampireResistanceSpells)
+    VampireRemoveLeveledSpells(AbVampireStageSpells)
+    VampireRemoveLeveledSpells(AbVampireWeaknessSpells)
+    VampireRemoveLeveledSpells(VampireSunDamageSpells)
   Else
-    Target.AddSpell(AbVampireChillTouch, abVerbose = False)
-    Target.AddSpell(VampireBloodMemory, abVerbose = False)
-    Target.AddSpell(VampireChampionOfTheNight, abVerbose = False)
-    Target.AddSpell(VampireNightstalker, abVerbose = False)
+    PlayerRef.AddSpell(AbVampireChillTouch, abVerbose = False)
+    PlayerRef.AddSpell(VampireBloodMemory, abVerbose = False)
+    PlayerRef.AddSpell(VampireChampionOfTheNight, abVerbose = False)
+    PlayerRef.AddSpell(VampireNightstalker, abVerbose = False)
 
     If Property_VampireStatus == 1
-      Target.AddSpell(VampireInvisibilityPC, abVerbose = False)
+      PlayerRef.AddSpell(VampireInvisibilityPC, abVerbose = False)
     Else
-      Target.RemoveSpell(VampireInvisibilityPC)
+      PlayerRef.RemoveSpell(VampireInvisibilityPC)
     EndIf
 
     If Property_VampireStatus == 4
-      Target.RemoveSpell(VampireMesmerizingGaze)
+      PlayerRef.RemoveSpell(VampireMesmerizingGaze)
 
-      VampireRemoveLeveledSpells(Target, VampireCharmSpells)
-      VampireRemoveLeveledSpells(Target, VampireRaiseThrallSpells)
+      VampireRemoveLeveledSpells(VampireCharmSpells)
+      VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
     Else
-      Target.AddSpell(VampireMesmerizingGaze, abVerbose = False)
+      PlayerRef.AddSpell(VampireMesmerizingGaze, abVerbose = False)
 
-      VampireAddLeveledSpell(Target, VampireCharmSpells, Property_VampireRank)
-      VampireAddLeveledSpell(Target, VampireRaiseThrallSpells, Property_VampireRank)
+      VampireAddLeveledSpell(VampireCharmSpells, Property_VampireRank)
+      VampireAddLeveledSpell(VampireRaiseThrallSpells, Property_VampireRank)
     EndIf
 
-    VampireAddLeveledSpell(Target, AbVampireRankSpells, Property_VampireRank)
-    VampireAddLeveledSpell(Target, VampireClawsSpells, Property_VampireRank)
-    VampireAddLeveledSpell(Target, VampireDrainSpells, Property_VampireRank)
+    VampireAddLeveledSpell(AbVampireRankSpells, Property_VampireRank)
+    VampireAddLeveledSpell(VampireClawsSpells, Property_VampireRank)
+    VampireAddLeveledSpell(VampireDrainSpells, Property_VampireRank)
 
-    VampireAddLeveledSpell(Target, AbVampireResistanceSpells, 5 - Property_VampireStatus)
-    VampireAddLeveledSpell(Target, AbVampireStageSpells, Property_VampireStatus)
-    VampireAddLeveledSpell(Target, AbVampireWeaknessSpells, Property_VampireStatus)
-    VampireAddLeveledSpell(Target, VampireSunDamageSpells, Property_VampireStatus)
+    VampireAddLeveledSpell(AbVampireResistanceSpells, 5 - Property_VampireStatus)
+    VampireAddLeveledSpell(AbVampireStageSpells, Property_VampireStatus)
+    VampireAddLeveledSpell(AbVampireWeaknessSpells, Property_VampireStatus)
+    VampireAddLeveledSpell(VampireSunDamageSpells, Property_VampireStatus)
   EndIf
 
   If Property_VampireStatus < 4
@@ -356,7 +353,7 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
       VampireImageSpaceModifier()
     EndIf
   ElseIf Property_VampireStatus == 4
-    VampireSetHated()
+    VampireSetHated(True)
 
     If Verbose
       VampireStage4Message.Show()
@@ -365,7 +362,7 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
   EndIf
 
   If !Transforming
-    __EnablePlayerControls()
+    VampireEnablePlayerControls()
   EndIf
 
   Updating = False
@@ -383,16 +380,16 @@ Function VampireChange(Actor Target)
 
   Transforming = True
 
-  __StopFeedTimer()
-  __DisablePlayerControls()
-  VampirePlayChange(Target)
-  Target.SetRace(PlayerVampireRaceController.GetVampireRace())
-  VampireRemoveSpells(Target, VampireImmuneDiseases)
-  VampireUpdateRank(Target)
+  VampireStopFeedTimer()
+  VampireDisablePlayerControls()
+  VampirePlayChange()
+  PlayerRef.SetRace(PlayerVampireRaceController.GetVampireRace())
+  VampireRemoveSpells(VampireImmuneDiseases)
+  VampireUpdateRank()
   VampireShowRankMessage()
-  VampireProgression(Target, 1)
-  __StartFeedTimer()
-  __EnablePlayerControls()
+  VampireProgression(PlayerRef, 1)
+  VampireStartFeedTimer()
+  VampireEnablePlayerControls()
 
   ; If the player has been cured before, restart the cure quest.
   If VC01.GetStageDone(200) == 1
@@ -414,43 +411,42 @@ Function VampireCure(Actor Target)
 
   Transforming = True
 
-  __StopFeedTimer()
-  __DisablePlayerControls()
-  VampirePlayCure(Target)
-  VampireUpdateRank(Target, Reset = True)
-  VampireProgression(Target, 0)
-  Target.DispelSpell(VampireHuntersSight)
-  Target.SetRace(PlayerVampireRaceController.GetCureRace())
-  Target.RemoveSpell(VampireHuntersSight)
-  __EnablePlayerControls()
+  VampireStopFeedTimer()
+  VampireDisablePlayerControls()
+  VampireUpdateRank(Reset = True)
+  VampireProgression(PlayerRef, 0)
+  PlayerRef.DispelSpell(VampireHuntersSight)
+  PlayerRef.SetRace(PlayerVampireRaceController.GetCureRace())
+  PlayerRef.RemoveSpell(VampireHuntersSight)
+  VampireEnablePlayerControls()
   Game.IncrementStat("Vampirism Cures")
 
   Transforming = False
 
 EndFunction
 
-Bool Function VampireSafeToUpdate(Actor Target)
+Bool Function VampireSafeToUpdate()
 {
   Determine whether it is safe to update the player's vampire state.
 }
 
   Return Game.IsMovementControlsEnabled() \
       && Game.IsFightingControlsEnabled() \
-      && !Target.IsInCombat() \
-      && !Target.HasMagicEffect(DLC1VampireChangeEffect) \
-      && !Target.HasMagicEffect(DLC1VampireChangeFXEffect) \
+      && !PlayerRef.IsInCombat() \
+      && !PlayerRef.HasMagicEffect(DLC1VampireChangeEffect) \
+      && !PlayerRef.HasMagicEffect(DLC1VampireChangeFXEffect) \
       && !Feeding \
       && !Updating \
       && !Transforming
 
 EndFunction
 
-Bool Function VampireUpdateRank(Actor Target, Bool Reset = False)
+Bool Function VampireUpdateRank(Bool Reset = False)
 {
   Update the vampire rank to reflect current level and number of feedings.
 }
 
-  Int Level = Target.GetLevel()
+  Int PlayerLevel = PlayerRef.GetLevel()
   Int OldVampireRank = Property_VampireRank
 
   If Reset
@@ -458,15 +454,15 @@ Bool Function VampireUpdateRank(Actor Target, Bool Reset = False)
   Else
     If Property_Feedings < 3
       Property_VampireRank = 1
-    ElseIf Property_Feedings < 9 && Level > 10
+    ElseIf Property_Feedings < 9 && PlayerLevel > 10
       Property_VampireRank = 2
-    ElseIf Property_Feedings < 25 && Level > 20
+    ElseIf Property_Feedings < 25 && PlayerLevel > 20
       Property_VampireRank = 3
-    ElseIf Property_Feedings < 75 && Level > 30
+    ElseIf Property_Feedings < 75 && PlayerLevel > 30
       Property_VampireRank = 4
-    ElseIf Property_Feedings < 200 && Level > 40
+    ElseIf Property_Feedings < 200 && PlayerLevel > 40
       Property_VampireRank = 5
-    ElseIf Level > 50
+    ElseIf PlayerLevel > 50
       Property_VampireRank = 6
     EndIf
   EndIf
@@ -489,8 +485,6 @@ Function VampireSetHated(Bool Hate = True)
   Enable or disable player vampire hate, causing them to be attacked on sight.
 }
 
-  Actor PlayerRef = Game.GetPlayer()
-
   If Hate
     PlayerRef.AddtoFaction(VampirePCFaction)
   Else
@@ -506,7 +500,7 @@ Function VampireSetHated(Bool Hate = True)
 
 EndFunction
 
-Function VampireAddLeveledSpell(Actor Target, Spell[] VampireSpells, Int VampireLevel)
+Function VampireAddLeveledSpell(Spell[] VampireSpells, Int VampireLevel)
 {
   Add a leveled spell from the given 1-indexed, ordered array.
 }
@@ -517,15 +511,15 @@ Function VampireAddLeveledSpell(Actor Target, Spell[] VampireSpells, Int Vampire
     Index -= 1
 
     If Index == VampireLevel
-      Target.AddSpell(VampireSpells[Index], abVerbose = False)
+      PlayerRef.AddSpell(VampireSpells[Index], abVerbose = False)
     Else
-      Target.RemoveSpell(VampireSpells[Index])
+      PlayerRef.RemoveSpell(VampireSpells[Index])
     EndIf
   EndWhile
 
 EndFunction
 
-Function VampireRemoveLeveledSpells(Actor Target, Spell[] VampireSpells)
+Function VampireRemoveLeveledSpells(Spell[] VampireSpells)
 {
   Remove all spells from the given 1-indexed, ordered array.
 }
@@ -534,12 +528,12 @@ Function VampireRemoveLeveledSpells(Actor Target, Spell[] VampireSpells)
 
   While Index > 1
     Index -= 1
-    Target.RemoveSpell(VampireSpells[Index])
+    PlayerRef.RemoveSpell(VampireSpells[Index])
   EndWhile
 
 EndFunction
 
-Function VampireRemoveSpells(Actor Target, FormList VampireSpells)
+Function VampireRemoveSpells(FormList VampireSpells)
 {
   Remove all spells in the given Form List.
 }
@@ -548,7 +542,7 @@ Function VampireRemoveSpells(Actor Target, FormList VampireSpells)
 
   While Index
     Index -= 1
-    Target.RemoveSpell(VampireSpells.GetAt(Index) as Spell)
+    PlayerRef.RemoveSpell(VampireSpells.GetAt(Index) as Spell)
   EndWhile
 
 EndFunction
@@ -562,31 +556,20 @@ Function VampireImageSpaceModifier()
 
 EndFunction
 
-Function VampirePlayChange(Actor Target)
+Function VampirePlayChange()
 {
   Play visuals on transformation into a vampire.
 }
 
-  VampireChangeFX.Play(Target)
+  VampireChangeFX.Play(PlayerRef)
   ((Self as Quest) as VampireCrossFade).Apply(VampireTransformIncreaseISMD)
 
   If !SoundMarkerRef.GetReference()
-    SoundMarkerRef.ForceRefTo(Target.PlaceAtMe(XMarker))
+    SoundMarkerRef.ForceRefTo(PlayerRef.PlaceAtMe(XMarker))
   EndIf
 
   MAGVampireTransform01.Play(SoundMarkerRef.GetReference())
-  VampireChangeFX.Stop(Target)
-
-EndFunction
-
-Function VampirePlayCure(Actor Target)
-{
-  Play visuals on curing vampirism.
-}
-
-  HealMysticFXS.Play(Target)
-  VampireImageSpaceModifier()
-  HealMysticFXS.Stop(Target)
+  VampireChangeFX.Stop(PlayerRef)
 
 EndFunction
 
@@ -595,14 +578,12 @@ Function VampireAddCharmSpell()
   Add the appropriate leveled Vampire's Seduction spell to the player.
 }
 
-  Actor PlayerRef = Game.GetPlayer()
-
-  VampireRemoveLeveledSpells(PlayerRef, VampireCharmSpells)
-  VampireAddLeveledSpell(PlayerRef, VampireCharmSpells, Property_VampireRank)
+  VampireRemoveLeveledSpells(VampireCharmSpells)
+  VampireAddLeveledSpell(VampireCharmSpells, Property_VampireRank)
 
 EndFunction
 
-Function __DisableMenu()
+Function VampireDisableMenu()
 {
   Disable player access to menus.
 }
@@ -620,7 +601,7 @@ Function __DisableMenu()
 
 EndFunction
 
-Function __DisablePlayerControls()
+Function VampireDisablePlayerControls()
 {
   Disable player controls during transformation.
 }
@@ -639,28 +620,27 @@ Function __DisablePlayerControls()
 
 EndFunction
 
-Function __EnablePlayerControls()
+Function VampireEnablePlayerControls()
 {
   Enable player controls.
 }
 
-  Utility.Wait(1.0)
   Game.EnablePlayerControls()
   Game.SetInChargen(False, False, False)
 
 EndFunction
 
-Function __StartFeedTimer()
+Function VampireStartFeedTimer()
 {
   Start the feed timer with the interval specified by FeedTimerUpdateInterval.
 }
 
-  __StopFeedTimer()
+  VampireStopFeedTimer()
   RegisterForUpdateGameTime(FeedTimerUpdateInterval)
 
 EndFunction
 
-Function __StopFeedTimer()
+Function VampireStopFeedTimer()
 {
   Stop the feed timer.
 }

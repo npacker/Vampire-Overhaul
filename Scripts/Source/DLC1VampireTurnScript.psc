@@ -28,7 +28,6 @@ Faction Property DLC1RV07ThankFaction Auto
 
 Quest Property DLC1RV06 Auto
 Quest Property DLC1RV07 Auto
-Quest Property DLC1VQ02 Auto
 Quest Property DLC1VQ03Vampire Auto
 
 ReferenceAlias Property DLC1RV06Spouse Auto
@@ -38,30 +37,11 @@ ReferenceAlias Property DLC1VQ03VampireDexion Auto
 Perk Property DLC1VampireTurnPerk Auto
 
 Spell Property DLC1VampireChange Auto
-Spell Property DLC1VampireChangeFX Auto
 
-Idle Property DLC1PairEnd Auto
 Idle Property IdleVampireStandingFeedFront_Loose Auto
 Idle Property pa_VampireLordChangePlayer Auto
 
 Race Property DLC1VampireBeastRace Auto
-Race Property DLC1HarkonRace Auto
-
-Actor Property DLC1HarknonActorRef Auto
-
-Armor Property DLC1ClothesVampireLordRoyalArmor Auto
-Armor Property DLC1VampireLordCape Auto
-
-Outfit Property DLC1HarkonOutfit Auto
-Outfit Property DLC1HarkonDummyOutfit Auto
-
-ObjectReference Property DLC1VQ02HarkonWakeupMarker Auto
-ObjectReference Property DLC1VQ02PlayerWakeupMarker Auto
-ObjectReference Property DLC1VQ02PlayerWakeupMarkerReject Auto
-
-ImageSpaceModifier Property DLC1HarkonBiteFadeToBlackImod Auto
-ImageSpaceModifier Property FadeToBlackImod Auto
-ImageSpaceModifier Property SleepyTimeFadeIn Auto
 
 CompanionsHousekeepingScript Property C00 Auto
 
@@ -93,8 +73,8 @@ Function PlayerBitesMe(Actor ActorToTurn)
       && DLC1VQ03VampireDexion.GetActorReference() == ActorToTurn
     If DLC1VQ03Vampire.GetStageDone(67)
       DLC1VQ03Vampire.SetStage(70)
-    Endif
-  Endif
+    EndIf
+  EndIf
 
 EndFunction
 
@@ -114,18 +94,18 @@ Function TurnMeIntoVampire(Actor ActorToTurn)
   ; Communicate successfully turned into vampire.
   If DLC1RV06.IsRunning() && ActorToTurn == DLC1RV06Spouse.GetActorReference()
     DLC1RV06.setStage(100)
-  Endif
+  EndIf
 
   ; Communicate successfully turned into vampire.
   If DLC1RV07.IsRunning() && ActorToTurn == DLC1RV07Candidate.GetActorReference()
     DLC1RV07.setStage(100)
-  Endif
+  EndIf
 
 EndFunction
 
 Function CompleteChange(ReferenceAlias AliasToTurn)
 
-  Actor ActorToTurn = AliasToTurn.GetActorReference()
+  Actor ActorToTurn = AliasToTurn.GetReference() as Actor
   Actor PlayerRef = Game.GetPlayer()
 
   If ActorToTurn
@@ -144,16 +124,16 @@ Function CompleteChange(ReferenceAlias AliasToTurn)
 
       If ActorToTurn.GetRelationshipRank(PlayerRef) < 1
         ActorToTurn.SetRelationshipRank(PlayerRef, 1)
-      Endif
+      EndIf
 
       If DLC1RV07.IsRunning() && ActorToTurn == DLC1RV07Candidate.GetActorReference()
         DLC1RV07.SetStage(50)
         ActorToTurn.AddToFaction(DLC1RV07ThankFaction)
         ActorToTurn.AddToFaction(DLC1RV07CoffinOwnerFaction)
         PlayerRef.AddToFaction(DLC1RV07CoffinOwnerFaction)
-      Endif
-    Endif
-  Endif
+      EndIf
+    EndIf
+  EndIf
 
 EndFunction
 
@@ -184,7 +164,7 @@ ReferenceAlias Function GetNextAlias()
     ReferenceAliasToReturn = NewVampire4
   ElseIf !NewVampire5.GetReference()
     ReferenceAliasToReturn = NewVampire5
-  Endif
+  EndIf
 
   Return ReferenceAliasToReturn
 
@@ -200,7 +180,7 @@ Function MakeAliasesEyesRed()
 
     If RedEyeAliasArray[Index].GetActorReference()
       MakeMyEyesRed(RedEyeAliasArray[Index])
-    Endif
+    EndIf
   EndWhile
 
 EndFunction
@@ -210,7 +190,7 @@ Function MakeMyEyesRed(ReferenceAlias AliasWhoseActorToGiveRedEyes)
   Called OnLoad() by DLC1VampireTurnRedEyes, and by MakeAliasesEyesRed()
 }
 
-  Actor ActorToChange = AliasWhoseActorToGiveRedEyes.GetActorReference()
+  Actor ActorToChange = AliasWhoseActorToGiveRedEyes.GetReference() as Actor
 
   ; UDGP 1.2.2 added 3D load check due to Papyrus errors on startup if you're
   ; not in the location.
@@ -220,28 +200,12 @@ Function MakeMyEyesRed(ReferenceAlias AliasWhoseActorToGiveRedEyes)
 
 EndFunction
 
-Function HarkonBitesPlayer(Bool isPlayerRecieveingHarkonsGift = True)
+Function ReceiveSeranasGift(Actor GiftGiver)
+{
+  Convenience function for Serana to transform the player into a vampire lord.
+}
 
-  Actor PlayerRef = Game.GetPlayer()
-
-  DLC1HarkonBiteFadeToBlackImod.Apply()
-
-  If isPlayerRecieveingHarkonsGift
-    ; Player accepts gift.
-    ReceiveHarkonsGift(DLC1HarknonActorRef, PlayStandardBiteAnim = False)
-    PlayerRef.PlayIdle(DLC1PairEnd)
-    PlayerRef.MoveTo(DLC1VQ02PlayerWakeupMarker)
-    HarkonChangeBackFromVampireLord()
-    DLC1HarknonActorRef.MoveTo(DLC1VQ02HarkonWakeupMarker)
-    DLC1HarkonBiteFadeToBlackImod.PopTo(SleepyTimeFadeIn)
-    DLC1VQ02.SetStage(40)
-  Else
-    ; Player rejects gift.
-    Utility.Wait(5.0)
-    PlayerRef.MoveTo(DLC1VQ02PlayerWakeupMarkerReject)
-    DLC1HarkonBiteFadeToBlackImod.PopTo(SleepyTimeFadeIn)
-    DLC1VQ02.SetStage(30)
-  Endif
+  ReceiveHarkonsGift(GiftGiver, IsSeranaGiving = True)
 
 EndFunction
 
@@ -259,17 +223,17 @@ Function ReceiveHarkonsGift(Actor GiftGiver, Bool IsSeranaGiving = False, Bool P
   Else
     ; Assume Lord form bite.
     AnimPlayed = GiftGiver.PlayIdleWithTarget(pa_VampireLordChangePlayer, PlayerRef)
-  Endif
+  EndIf
 
-  if !PlayerRef.GetRace().HasKeyword(Vampire)
+  If !PlayerRef.GetRace().HasKeyword(Vampire)
     PlayerVampireQuest.VampireChange(PlayerRef)
   Else
     Utility.Wait(3.0)
-  Endif
+  EndIf
 
   If C00.PlayerHasBeastBlood
     C00.CurePlayer()
-  Endif
+  EndIf
 
   PlayerRef.AddSpell(DLC1VampireChange)
   PlayerRef.AddPerk(DLC1VampireTurnPerk)
@@ -283,91 +247,17 @@ Function ReceiveHarkonsGift(Actor GiftGiver, Bool IsSeranaGiving = False, Bool P
 
 EndFunction
 
-Function ReceiveSeranasGift(Actor GiftGiver)
-{
-  Convenience function for Serana to transform the player into a vampire lord.
-}
-
-  ReceiveHarkonsGift(GiftGiver, IsSeranaGiving = True)
-
-EndFunction
-
-Function NPCTransformIntoVampireLord(Actor ActorToTurn, Bool RoyalOutfit = False, Bool HarkonForceGreet = False)
-{
-  Called from DLC1VQ02HarkonTransformTopic1.
-}
-
-  DLC1HarkonRace = ActorToTurn.GetActorBase().GetRace()
-
-  DLC1VampireChangeFX.Cast(ActorToTurn, ActorToTurn)
-
-EndFunction
-
-Function HarkonChangedRace()
-{
-  Called by DLC1VQ02HarkonScript attached to DLC1VQ02 Harkon Alias.
-}
-
-  Int VampireLordArmorCount = DLC1HarknonActorRef.GetItemCount(DLC1ClothesVampireLordRoyalArmor)
-  Int VampireLordCapeCount = DLC1HarknonActorRef.GetItemCount(DLC1VampireLordCape)
-
-  ; Assumes the first time he transforms is to set this stage.
-  If !DLC1VQ02.GetStageDone(15)
-    ; Causes Harkon to forcegreet player.
-    DLC1VQ02.SetStage(15)
-    DLC1HarknonActorRef.EvaluatePackage()
-  Endif
-
-  ; When Harkon reverts back from being a Vampire Lord, fix his clothing.
-  If DLC1HarknonActorRef.GetRace() == DLC1VampireBeastRace
-    If VampireLordArmorCount == 0
-      DLC1HarknonActorRef.AddItem(DLC1ClothesVampireLordRoyalArmor, 1, abSilent = True)
-    EndIf
-
-    If VampireLordCapeCount == 0
-      DLC1HarknonActorRef.AddItem(DLC1VampireLordCape, 1, abSilent = True)
-    EndIf
-
-    DLC1HarknonActorRef.EquipItem(DLC1ClothesVampireLordRoyalArmor, abPreventRemoval = False, abSilent = True)
-    DLC1HarknonActorRef.EquipItem(DLC1VampireLordCape, abPreventRemoval = False, abSilent = True)
-  Else
-    DLC1HarknonActorRef.RemoveItem(DLC1ClothesVampireLordRoyalArmor, VampireLordArmorCount)
-    DLC1HarknonActorRef.RemoveItem(DLC1VampireLordCape, VampireLordCapeCount)
-    DLC1HarknonActorRef.SetOutfit(DLC1HarkonDummyOutfit)
-    DLC1HarknonActorRef.SetOutfit(DLC1HarkonOutfit)
-  Endif
-
-EndFunction
-
-Function HarkonChangeBackFromVampireLord()
-{
-  Called from HarkonBitesPlayer().
-}
-
-  DLC1HarknonActorRef.SetRace(DLC1HarkonRace)
-
-EndFunction
+;-------------------------------------------------------------------------------
+; OBSOLETE FUNCTIONS
+;-------------------------------------------------------------------------------
 
 Function NameVampireLord(Actor ActorToRename)
 {
-  Start storing text.
+  // Start storing text.
 }
 
   SetStage(10)
   DisguisedVampireLordName.ForceRefTo(ActorToRename)
   DisguisedVampireLordName.Clear()
-
-EndFunction
-
-;-------------------------------------------------------------------------------
-; OBSOLETE FUNCTIONS
-;-------------------------------------------------------------------------------
-
-Race Function GetVampireRace(Actor ActorToTurn)
-{
-  Used to change NPC race - doesn't work as intended.
-}
-
-  Return None
 
 EndFunction

@@ -4,7 +4,7 @@ PlayerVampireQuestScript Property PlayerVampireQuest Auto
 
 Event OnStoryIncreaseLevel(Int aiNewLevel)
 
-  If PlayerVampireQuest.VampireUpdateRank(Game.GetPlayer())
+  If PlayerVampireQuest.VampireUpdateRank()
     RegisterForSingleUpdate(5.0)
   Else
     Stop()
@@ -16,7 +16,7 @@ Event OnUpdate()
 
   Actor PlayerRef = Game.GetPlayer()
 
-  If PlayerVampireQuest.VampireSafeToUpdate(PlayerRef)
+  If PlayerVampireQuest.VampireSafeToUpdate()
     PlayerVampireQuest.VampireProgression(PlayerRef, PlayerVampireQuest.VampireStatus, Verbose = False)
     PlayerVampireQuest.VampireShowRankMessage()
     Stop()

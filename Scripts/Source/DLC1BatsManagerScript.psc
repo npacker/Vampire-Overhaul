@@ -26,7 +26,7 @@ Event OnSpellCast(Form akSpell)
     If DLC1BatsCount.Value >= BatsMaxUses
       DLC1BatsWaitMessage.Show()
       DLC1BatsCooldown.Value = 1
-      GetActorRef().RemoveSpell(DLC1VampireBats)
+      PlayerRef.RemoveSpell(DLC1VampireBats)
     EndIf
   EndIf
 
@@ -41,10 +41,10 @@ Event OnUpdateGameTime()
   If DLC1BatsCount.Value >= BatsMaxUses
     DLC1BatsReadyMessage.Show()
     DLC1BatsCooldown.Value = 0
-    GetActorRef().AddSpell(DLC1VampireBats, abVerbose = False)
+    PlayerRef.AddSpell(DLC1VampireBats, abVerbose = False)
 
-    If GetActorRef().GetEquippedSpell(2) == None
-      GetActorRef().EquipSpell(DLC1VampireBats, 2)
+    If PlayerRef.GetEquippedSpell(2) == None
+      PlayerRef.EquipSpell(DLC1VampireBats, 2)
     EndIf
   EndIf
 

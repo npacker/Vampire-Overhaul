@@ -1,8 +1,6 @@
 Scriptname DLC1VampireSleepScript extends Quest
 {Script attached to DLC1VampireSleep quest}
 
-PlayerVampireQuestScript Property PlayerVampireQuest Auto
-
 Perk Property DLC1VampireSleepPerk Auto
 { Vapmire coffin sleep perk, added in quest start-up stage. }
 

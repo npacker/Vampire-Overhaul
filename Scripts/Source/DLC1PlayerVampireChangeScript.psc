@@ -9,6 +9,9 @@ Scriptname DLC1PlayerVampireChangeScript extends Quest
 Race Property DLC1VampireBeastRace Auto
 { The vampire lord race. }
 
+Actor Property PlayerRef Auto
+{ The Player. }
+
 ;-------------------------------------------------------------------------------
 ; VAMPIRE LORD FX
 ;-------------------------------------------------------------------------------
@@ -266,8 +269,6 @@ EndEvent
 
 Event OnAnimationEvent(ObjectReference Target, String EventName)
 
-  Actor PlayerRef = Game.GetPlayer()
-
   If Target != PlayerRef
     Return
   EndIf
@@ -381,8 +382,6 @@ Function PrepShift()
   Start() on DLC1PlayerVampireQuest.
 }
 
-  Actor PlayerRef = Game.GetPlayer()
-
   ; Set up the UI restrictions.
   PreTransformDisablePlayerControls()
   Game.EnableFastTravel(False)
@@ -426,7 +425,6 @@ Function InitialShift()
   EndIf
 
   Transformed = True
-  Actor PlayerRef = Game.GetPlayer()
 
   If PlayerRef.IsDead()
     Return
@@ -477,7 +475,6 @@ Function StartTracking()
   EndIf
 
   TrackingStarted = True
-  Actor PlayerRef = Game.GetPlayer()
 
   ; Add levitation VFX.
   PlayerRef.AddSpell(DLC1AbVampireFloatBodyFX, abVerbose = False)
@@ -583,7 +580,6 @@ Function ShiftBack()
   EndIf
 
   TryingToShiftBack = True
-  Actor PlayerRef = Game.GetPlayer()
 
   While PlayerRef.GetAnimationVariableBool("bIsSynced")
     Utility.Wait(0.1)
@@ -605,7 +601,6 @@ Function ActuallyShiftBackIfNecessary()
   EndIf
 
   ShiftingBack = True
-  Actor PlayerRef = Game.GetPlayer()
 
   ; Disable save and wait while reverting form.
   PreTransformDisablePlayerControls()
@@ -624,7 +619,7 @@ Function ActuallyShiftBackIfNecessary()
   VampireIMODSound.Play(PlayerRef)
 
   ; We now add the effect with a long duration and remove it later.
-  DLC1VampireChangeBackFXS.Play(PlayerRef, 12.0)
+  DLC1VampireChangeBackFXS.Play(PlayerRef)
 
   ; Dispel summons.
   DispelSummons()
@@ -646,19 +641,19 @@ Function ActuallyShiftBackIfNecessary()
   Float CurrentHealth = PlayerRef.GetAV("health")
 
   If CurrentHealth <= 100
-    PlayerRef.RestoreAV("health", 100 - CurrentHealth)
+    PlayerRef.RestoreActorValue("health", 100 - CurrentHealth)
   EndIf
 
   Float CurrentStamina = PlayerRef.GetAV("stamina")
 
   If CurrentStamina <= 100
-    PlayerRef.RestoreAV("stamina", 100 - CurrentStamina)
+    PlayerRef.RestoreActorValue("stamina", 100 - CurrentStamina)
   EndIf
 
   Float CurrentMagicka = PlayerRef.GetAV("magicka")
 
   If CurrentMagicka <= 100
-    PlayerRef.RestoreAV("magicka", 100 - CurrentMagicka)
+    PlayerRef.RestoreActorValue("magicka", 100 - CurrentMagicka)
   EndIf
 
   ; Clear out perks/abilities.
@@ -700,11 +695,6 @@ Function ActuallyShiftBackIfNecessary()
   ; script.
   PlayerRef.SetRace((VampireTrackingQuest as DLC1VampireTrackingQuest).PlayerRace)
 
-  ; We remove the Effect shader here now. And now we also try to book end it
-  ; with another shader.
-  DLC1VampireChangeBackFXS.Stop(PlayerRef)
-  DLC1VampireChangeBack02FXS.Play(PlayerRef, 0.1)
-
 EndFunction
 
 Function Shutdown()
@@ -716,8 +706,12 @@ Function Shutdown()
     Return
   EndIf
 
-  Actor PlayerRef = Game.GetPlayer()
   ShuttingDown = True
+
+  ; We remove the Effect shader here now. And now we also try to book end it
+  ; with another shader.
+  DLC1VampireChangeBackFXS.Stop(PlayerRef)
+  DLC1VampireChangeBack02FXS.Play(PlayerRef, 0.1)
 
   ; Player should no longer be attacked on sight.
   VampireLordSetHate(False)
@@ -776,7 +770,6 @@ Function EstablishLeveledSpells()
   player should get as a Vampire Lord. It sets the properties LeveledDrainSpell and LeveledAbility.
 }
 
-  Actor PlayerRef = Game.GetPlayer()
   Int PlayerLevel = PlayerRef.GetLevel()
 
   ; Establish the leveled Vampire Drain spell.
@@ -827,8 +820,6 @@ Function CheckPerkSpells()
   may have additional perks since we first became a vampire lord.
 }
 
-  Actor PlayerRef = Game.GetPlayer()
-
   If PlayerRef.HasPerk(DLC1CorpseCursePerk) \
       && !PlayerRef.HasSpell(DLC1CorpseCurse)
     PlayerRef.AddSpell(DLC1CorpseCurse, False)
@@ -872,7 +863,6 @@ Function DispelSummons()
   form.
 }
 
-  Actor PlayerRef = Game.GetPlayer()
   Int Count = VampireDispelList.GetSize()
 
   While Count
@@ -890,8 +880,6 @@ Function VampireLordSetHate(Bool Hate = True)
 {
   Set whether the player should be an enemy of vampire hate factions.
 }
-
-  Actor PlayerRef = Game.GetPlayer()
 
   ; Add the player to the vampire lord faction.
   If Hate
@@ -916,8 +904,6 @@ Function RegisterForEvents()
   Register for all of the animation events we care about.
 }
 
-  Actor PlayerRef = Game.GetPlayer()
-
   DCL1VampireLevitateStateGlobal.SetValue(1)
 
   RegisterForAnimationEvent(PlayerRef, Ground)
@@ -933,8 +919,6 @@ Function UnregisterForEvents()
 {
   Unregister for all registered animation events.
 }
-
-  Actor PlayerRef = Game.GetPlayer()
 
   UnRegisterForAnimationEvent(PlayerRef, Ground)
   UnRegisterForAnimationEvent(PlayerRef, Levitate)
