@@ -521,20 +521,24 @@ EndFunction
 
 Function VampireImageSpaceModifier()
 
-  ((Self as Quest) as VampireCrossFade).Apply(VampireTransformDecreaseISMD)
+  VampireTransformDecreaseISMD.ApplyCrossFade(2.0)
+  Utility.Wait(2.0)
+  ImageSpaceModifier.RemoveCrossFade()
 
 EndFunction
 
 Function VampirePlayChange()
 
   VampireChangeFX.Play(PlayerRef)
-  ((Self as Quest) as VampireCrossFade).Apply(VampireTransformIncreaseISMD)
 
   If !SoundMarkerRef.GetReference()
     SoundMarkerRef.ForceRefTo(PlayerRef.PlaceAtMe(XMarker))
   EndIf
 
+  VampireTransformIncreaseISMD.ApplyCrossFade(2.0)
   MAGVampireTransform01.Play(SoundMarkerRef.GetReference())
+  Utility.Wait(2.0)
+  ImageSpaceModifier.RemoveCrossFade()
   VampireChangeFX.Stop(PlayerRef)
 
 EndFunction

@@ -700,12 +700,6 @@ Function ActuallyShiftBackIfNecessary()
     PlayerRef.EquipItem(DLC1nVampireBloodMagicRingErudite, abPreventRemoval = False, abSilent = True)
   EndIf
 
-  ; Reset vampire item status variables.
-  DLC1nVampireNecklaceBats.SetValue(0)
-  DLC1nVampireNecklaceGargoyle.SetValue(0)
-  DLC1nVampireRingBeast.SetValue(0)
-  DLC1nVampireRingErudite.SetValue(0)
-
   ; Switch back the player race. This will call OnRaceSwitchComplete() on the
   ; DLC1PlayerVampireScript, which will in turn invoke Shutdown() on this
   ; script.
@@ -744,6 +738,12 @@ Function Shutdown()
 
   ; The player is no longer a Vampire Lord and so is not levitating.
   DCL1VampireLevitateStateGlobal.SetValue(0)
+
+  ; Reset vampire item status variables.
+  DLC1nVampireNecklaceBats.SetValue(0)
+  DLC1nVampireNecklaceGargoyle.SetValue(0)
+  DLC1nVampireRingBeast.SetValue(0)
+  DLC1nVampireRingErudite.SetValue(0)
 
   ; Remove UI restrictions.
   PlayerRef.RemovePerk(DLC1VampireActivationBlocker)
