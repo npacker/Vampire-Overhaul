@@ -15,6 +15,8 @@ PlayerVampireQuestScript Property PlayerVampireQuest Auto
 
 Keyword Property Vampire Auto
 
+Actor Property PlayerRef Auto
+
 ReferenceAlias Property NewVampire1 Auto
 ReferenceAlias Property NewVampire2 Auto
 ReferenceAlias Property NewVampire3 Auto
@@ -70,7 +72,7 @@ Function PlayerBitesMe(Actor ActorToTurn)
       && !ActorToTurn.IsInFaction(DLC1PlayerTurnedVampire)
     TurnMeIntoVampire(ActorToTurn)
   ElseIf DLC1VQ03VampireDexion \
-      && DLC1VQ03VampireDexion.GetActorReference() == ActorToTurn
+      && (DLC1VQ03VampireDexion.GetReference() as Actor) == ActorToTurn
     If DLC1VQ03Vampire.GetStageDone(67)
       DLC1VQ03Vampire.SetStage(70)
     EndIf
@@ -92,12 +94,12 @@ Function TurnMeIntoVampire(Actor ActorToTurn)
   OpenReferenceAlias.ForceRefTo(ActorToTurn)
 
   ; Communicate successfully turned into vampire.
-  If DLC1RV06.IsRunning() && ActorToTurn == DLC1RV06Spouse.GetActorReference()
+  If DLC1RV06.IsRunning() && ActorToTurn == (DLC1RV06Spouse.GetReference() as Actor)
     DLC1RV06.setStage(100)
   EndIf
 
   ; Communicate successfully turned into vampire.
-  If DLC1RV07.IsRunning() && ActorToTurn == DLC1RV07Candidate.GetActorReference()
+  If DLC1RV07.IsRunning() && ActorToTurn == (DLC1RV07Candidate.GetReference() as Actor)
     DLC1RV07.setStage(100)
   EndIf
 
@@ -106,7 +108,6 @@ EndFunction
 Function CompleteChange(ReferenceAlias AliasToTurn)
 
   Actor ActorToTurn = AliasToTurn.GetReference() as Actor
-  Actor PlayerRef = Game.GetPlayer()
 
   If ActorToTurn
     ; UDGP 2.0.1 - Needed to add a check for the actor being in a None location
@@ -126,7 +127,7 @@ Function CompleteChange(ReferenceAlias AliasToTurn)
         ActorToTurn.SetRelationshipRank(PlayerRef, 1)
       EndIf
 
-      If DLC1RV07.IsRunning() && ActorToTurn == DLC1RV07Candidate.GetActorReference()
+      If DLC1RV07.IsRunning() && ActorToTurn == (DLC1RV07Candidate.GetReference() as Actor)
         DLC1RV07.SetStage(50)
         ActorToTurn.AddToFaction(DLC1RV07ThankFaction)
         ActorToTurn.AddToFaction(DLC1RV07CoffinOwnerFaction)
@@ -178,7 +179,7 @@ Function MakeAliasesEyesRed()
   While Index
     Index -= 1
 
-    If RedEyeAliasArray[Index].GetActorReference()
+    If (RedEyeAliasArray[Index].GetReference() as Actor)
       MakeMyEyesRed(RedEyeAliasArray[Index])
     EndIf
   EndWhile
@@ -215,7 +216,6 @@ Function ReceiveHarkonsGift(Actor GiftGiver, Bool IsSeranaGiving = False, Bool P
   makes player a Vampire Lord.
 }
 
-  Actor PlayerRef = Game.GetPlayer()
   Bool AnimPlayed
 
   If PlayStandardBiteAnim

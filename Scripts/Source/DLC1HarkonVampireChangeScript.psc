@@ -40,7 +40,7 @@ Function Revert()
 
 EndFunction
 
-Function Shutdown()
+Function ShiftComplete()
 {
   Called from OnRaceSwitchComplete() on Harkon alias.
 }
@@ -66,8 +66,7 @@ Function Shutdown()
     HarkonRef.RemoveItem(DLC1VampireLordCape, CapeItemCount)
     HarkonRef.SetOutfit(DLC1HarkonDummyOutfit)
     HarkonRef.SetOutfit(DLC1HarkonOutfit)
+    Stop()
   EndIf
-
-  Stop()
 
 EndFunction

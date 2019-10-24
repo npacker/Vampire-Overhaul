@@ -45,7 +45,6 @@ EndProperty
 Int Property_Feedings Conditional
 
 Int Property Feedings
-{  Number of times fed since last becoming a vampire. }
 
   Int Function Get()
     Return Property_Feedings
@@ -56,7 +55,6 @@ EndProperty
 Float Property_LastFeedTime
 
 Float Property LastFeedTime
-{ Last time in game days of the last feeding. }
 
   Float Function Get()
     Return Property_LastFeedTime
@@ -64,14 +62,14 @@ Float Property LastFeedTime
 
 EndProperty
 
-Actor Property PlayerRef Auto
-{ The Player. }
-
 GlobalVariable Property PlayerIsVampire Auto
 { Set to 1 if the player is a vampire, 0 otherwiese. }
 
 GlobalVariable Property VampireFeedReady Auto
 { Set to the previous stage of vampirism during progression. }
+
+GlobalVariable Property GameDaysPassed Auto
+{ Number of days passed in the game. }
 
 Message Property VampireFeedMessage Auto
 { Message displayed upon feeding. }
@@ -92,13 +90,13 @@ PlayerVampireRaceControllerScript Property PlayerVampireRaceController Auto
 { Quest script that handles mapping of race to Vampire race. }
 
 Faction Property VampirePCFaction Auto
-{ Stage 4 Vampire faction. }
+{ Stage 4 Vampire faction, ensures hate. }
+
+FormList Property DLC1VampireHateFactions Auto
+{ Factions that will attack a Stage 4 Vampire on sight. }
 
 Quest Property VC01 Auto
 { Vampire cure quest. }
-
-FormList Property DLC1VampireHateFactions Auto
-{ Factions that hate Vampires. }
 
 ImageSpaceModifier Property VampireTransformDecreaseISMD Auto
 { Vampire feeding and progression image space modifier. }
@@ -124,14 +122,17 @@ MagicEffect Property DLC1VampireChangeEffect Auto
 MagicEffect Property DLC1VampireChangeFXEffect Auto
 { Used to check for Vampire Lord form. }
 
-GlobalVariable Property GameDaysPassed Auto
-
 Spell Property AbVampireSkills Auto
+{ Vanilla Champion of the Night. }
+
 Spell Property AbVampireSkills02 Auto
+{ Vanilla Nightstalker's Footsteps. }
 
 Spell[] Property VampireStrengthSpells Auto
+{ Vanilla Vampire strength spells. }
 
 FormList Property VampireImmuneDiseases Auto
+{ Diseases to cure after transformation. }
 
 Spell Property AbVampireChillTouch Auto
 Spell Property DLC1VampireChange Auto
@@ -152,6 +153,8 @@ Spell[] Property VampireClawsSpells Auto
 Spell[] Property VampireDrainSpells Auto
 Spell[] Property VampireRaiseThrallSpells Auto
 Spell[] Property VampireSunDamageSpells Auto
+
+Actor Property PlayerRef Auto
 
 ;-------------------------------------------------------------------------------
 ;
@@ -181,13 +184,8 @@ Bool Transforming = False
 ;-------------------------------------------------------------------------------
 
 Event OnUpdateGameTime()
-{
-  Queue an update of the feed timer handler.
-}
 
-  Float TimeElapsed = GameDaysPassed.Value - LastUpdateTime
-
-  If TimeElapsed >= 1.0
+  If (GameDaysPassed.Value - LastUpdateTime) >= 1.0
     VampireStopFeedTimer()
     RegisterForSingleUpdate(5.0)
   EndIf
@@ -195,9 +193,6 @@ Event OnUpdateGameTime()
 EndEvent
 
 Event OnUpdate()
-{
-  Handle an update of the feed timer.
-}
 
   If VampireSafeToUpdate()
     Int NewStage = Property_VampireStatus + Math.Floor(GameDaysPassed.Value - LastUpdateTime)
@@ -221,27 +216,25 @@ EndEvent
 ;-------------------------------------------------------------------------------
 
 Function VampireFeed()
-{
-  Handle vampire feeding and reset the feed timer.
-}
 
   If Feeding
     Return
   EndIf
 
   Feeding = True
-  Bool RankUpdated = False
 
   VampireStopFeedTimer()
   VampireImageSpaceModifier()
 
   If Property_VampireStatus > 1
+    Bool RankUpdated = False
+
     Property_Feedings += 1
     Property_LastFeedTime = GameDaysPassed.Value
     RankUpdated = VampireUpdateRank()
 
-    VampireFeedMessage.Show()
     VampireProgression(PlayerRef, 1)
+    VampireFeedMessage.Show()
 
     If RankUpdated
       VampireShowRankMessage()
@@ -255,9 +248,6 @@ Function VampireFeed()
 EndFunction
 
 Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
-{
-  Handle vampire progression.
-}
 
   If Updating
     Return
@@ -370,9 +360,6 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
 EndFunction
 
 Function VampireChange(Actor Target)
-{
-  Vampire trasnformation.
-}
 
   If Transforming
     Return
@@ -401,9 +388,6 @@ Function VampireChange(Actor Target)
 EndFunction
 
 Function VampireCure(Actor Target)
-{
-  Handle curing vampirism.
-}
 
   If Transforming
     Return
@@ -426,9 +410,6 @@ Function VampireCure(Actor Target)
 EndFunction
 
 Bool Function VampireSafeToUpdate()
-{
-  Determine whether it is safe to update the player's vampire state.
-}
 
   Return Game.IsMovementControlsEnabled() \
       && Game.IsFightingControlsEnabled() \
@@ -442,9 +423,6 @@ Bool Function VampireSafeToUpdate()
 EndFunction
 
 Bool Function VampireUpdateRank(Bool Reset = False)
-{
-  Update the vampire rank to reflect current level and number of feedings.
-}
 
   Int PlayerLevel = PlayerRef.GetLevel()
   Int OldVampireRank = Property_VampireRank
@@ -472,18 +450,12 @@ Bool Function VampireUpdateRank(Bool Reset = False)
 EndFunction
 
 Function VampireShowRankMessage()
-{
-  Display the message appropriate to the current vampire rank.
-}
 
   VampireRankMessages[Property_VampireRank].Show()
 
 EndFunction
 
 Function VampireSetHated(Bool Hate = True)
-{
-  Enable or disable player vampire hate, causing them to be attacked on sight.
-}
 
   If Hate
     PlayerRef.AddtoFaction(VampirePCFaction)
@@ -548,18 +520,12 @@ Function VampireRemoveSpells(FormList VampireSpells)
 EndFunction
 
 Function VampireImageSpaceModifier()
-{
-  Image space modifier for use during feeding and stage transitions.
-}
 
   ((Self as Quest) as VampireCrossFade).Apply(VampireTransformDecreaseISMD)
 
 EndFunction
 
 Function VampirePlayChange()
-{
-  Play visuals on transformation into a vampire.
-}
 
   VampireChangeFX.Play(PlayerRef)
   ((Self as Quest) as VampireCrossFade).Apply(VampireTransformIncreaseISMD)
@@ -574,9 +540,6 @@ Function VampirePlayChange()
 EndFunction
 
 Function VampireAddCharmSpell()
-{
-  Add the appropriate leveled Vampire's Seduction spell to the player.
-}
 
   VampireRemoveLeveledSpells(VampireCharmSpells)
   VampireAddLeveledSpell(VampireCharmSpells, Property_VampireRank)
@@ -584,9 +547,6 @@ Function VampireAddCharmSpell()
 EndFunction
 
 Function VampireDisableMenu()
-{
-  Disable player access to menus.
-}
 
   Game.SetInChargen(True, True, False)
   Game.DisablePlayerControls( \
@@ -602,9 +562,6 @@ Function VampireDisableMenu()
 EndFunction
 
 Function VampireDisablePlayerControls()
-{
-  Disable player controls during transformation.
-}
 
   Game.SetInChargen(True, True, False)
   Game.ForceThirdPerson()
@@ -621,9 +578,6 @@ Function VampireDisablePlayerControls()
 EndFunction
 
 Function VampireEnablePlayerControls()
-{
-  Enable player controls.
-}
 
   Game.EnablePlayerControls()
   Game.SetInChargen(False, False, False)
@@ -631,9 +585,6 @@ Function VampireEnablePlayerControls()
 EndFunction
 
 Function VampireStartFeedTimer()
-{
-  Start the feed timer with the interval specified by FeedTimerUpdateInterval.
-}
 
   VampireStopFeedTimer()
   RegisterForUpdateGameTime(FeedTimerUpdateInterval)
@@ -641,9 +592,6 @@ Function VampireStartFeedTimer()
 EndFunction
 
 Function VampireStopFeedTimer()
-{
-  Stop the feed timer.
-}
 
   UnregisterForUpdate()
   UnregisterForUpdateGameTime()

@@ -12,6 +12,8 @@ Race[] Property PlayableRaces Auto
 Race[] Property VampireRaces Auto
 { Playable Vampire races. }
 
+Actor Property PlayerRef Auto
+
 ;--------------------------------------------------------------------------------
 ;
 ; VARIABLES
@@ -35,10 +37,16 @@ Race Function GetVampireRace()
   Get the Vampire race of the target.
 }
 
+  Race CurrentRace = PlayerRef.GetRace()
+
+  If VampireRace && VampireRace == CurrentRace
+    Return VampireRace
+  EndIf
+
   Int Index = PlayableRaces.Length
   Bool Done = False
 
-  CureRace = Game.GetPlayer().GetActorBase().GetRace()
+  CureRace = PlayerRef.GetActorBase().GetRace()
 
   While Index && !Done
     Index -= 1
@@ -58,10 +66,16 @@ Race Function GetCureRace()
   Get the original race of the target.
 }
 
+  Race CurrentRace = PlayerRef.GetRace()
+
+  If CureRace && CureRace == CurrentRace
+    Return CureRace
+  EndIf
+
+  VampireRace = CurrentRace
+
   Int Index = VampireRaces.Length
   Bool Done = False
-
-  VampireRace = Game.GetPlayer().GetRace()
 
   While Index && !Done
     Index -= 1

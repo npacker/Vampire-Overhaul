@@ -89,15 +89,6 @@ GlobalVariable Property DCL1VampireLevitateStateGlobal Auto
     2 = Levitating
 }
 
-GlobalVariable Property DLC1BatsCount Auto
-{ Bats power max uses before cooldown. }
-
-GlobalVariable Property DLC1MistformCount Auto
-{ Mistform power max uses before cooldown. }
-
-GlobalVariable Property DLC1ReflexesCount Auto
-{ Supernatural Reflexes power max uses before cooldown. }
-
 ;-------------------------------------------------------------------------------
 ; VAMPIRE LORD WEARABLES
 ;-------------------------------------------------------------------------------
@@ -261,14 +252,6 @@ Bool ShuttingDown = False
 ; EVENTS
 ;
 ;-------------------------------------------------------------------------------
-
-Event OnInit()
-
-  DLC1BatsCount.Value = 0
-  DLC1MistformCount.Value = 0
-  DLC1ReflexesCount.Value = 0
-
-EndEvent
 
 Event OnAnimationEvent(ObjectReference Target, String EventName)
 
@@ -455,7 +438,7 @@ Function InitialShift()
     DLC1nVampireNecklaceGargoyle.SetValue(1)
   EndIf
 
-  ; Apply image space modifier.
+  ; Apply image space modifier before the magic happens.
   VampireWarn.Apply()
 
   ; Remove player's inventory prior to race change, causing them to be naked
@@ -616,6 +599,7 @@ Function ActuallyShiftBackIfNecessary()
   ; the value would be incorrect.
   UnregisterForEvents()
 
+  ; Abort if the player has died.
   If PlayerRef.IsDead()
     Return
   EndIf
@@ -647,19 +631,19 @@ Function ActuallyShiftBackIfNecessary()
 
   ; Ensure the player can't die if they have lost a greater amount of health
   ; than they have in their normal form.
-  Float CurrentHealth = PlayerRef.GetAV("health")
+  Float CurrentHealth = PlayerRef.GetActorValue("health")
 
   If CurrentHealth <= 100
     PlayerRef.RestoreActorValue("health", 100 - CurrentHealth)
   EndIf
 
-  Float CurrentStamina = PlayerRef.GetAV("stamina")
+  Float CurrentStamina = PlayerRef.GetActorValue("stamina")
 
   If CurrentStamina <= 100
     PlayerRef.RestoreActorValue("stamina", 100 - CurrentStamina)
   EndIf
 
-  Float CurrentMagicka = PlayerRef.GetAV("magicka")
+  Float CurrentMagicka = PlayerRef.GetActorValue("magicka")
 
   If CurrentMagicka <= 100
     PlayerRef.RestoreActorValue("magicka", 100 - CurrentMagicka)
@@ -699,6 +683,29 @@ Function ActuallyShiftBackIfNecessary()
   ;
   ; PlayerRef.RemoveItem(DLC1ClothesVampireLordArmor, aiCount = VampireLordArmorCount, abSilent = True)
 
+  ; Re-equip vampire items that were equipped before transformation.
+  If DLC1nVampireNecklaceBats.Value == 1
+    PlayerRef.EquipItem(DLC1nVampireNightPowerNecklaceBats, abPreventRemoval = False, abSilent = True)
+  EndIf
+
+  If DLC1nVampireNecklaceGargoyle.Value == 1
+    PlayerRef.EquipItem(DLC1nVampireNightPOwerNecklaceGargoyle, abPreventRemoval = False, abSilent = True)
+  EndIf
+
+  If DLC1nVampireRingBeast.Value == 1
+    PlayerRef.EquipItem(DLC1nVampireBloodMagicRingBeast, abPreventRemoval = False, abSilent = True)
+  EndIf
+
+  If DLC1nVampireRingErudite.Value == 1
+    PlayerRef.EquipItem(DLC1nVampireBloodMagicRingErudite, abPreventRemoval = False, abSilent = True)
+  EndIf
+
+  ; Reset vampire item status variables.
+  DLC1nVampireNecklaceBats.SetValue(0)
+  DLC1nVampireNecklaceGargoyle.SetValue(0)
+  DLC1nVampireRingBeast.SetValue(0)
+  DLC1nVampireRingErudite.SetValue(0)
+
   ; Switch back the player race. This will call OnRaceSwitchComplete() on the
   ; DLC1PlayerVampireScript, which will in turn invoke Shutdown() on this
   ; script.
@@ -727,29 +734,6 @@ Function Shutdown()
 
   ; And you're now recognized.
   Game.SetPlayerReportCrime(True)
-
-  ; Re-equip vampire items that were equipped before transformation.
-  If DLC1nVampireNecklaceBats.Value == 1
-    PlayerRef.EquipItem(DLC1nVampireNightPowerNecklaceBats, abPreventRemoval = False, abSilent = True)
-  EndIf
-
-  If DLC1nVampireNecklaceGargoyle.Value == 1
-    PlayerRef.EquipItem(DLC1nVampireNightPOwerNecklaceGargoyle, abPreventRemoval = False, abSilent = True)
-  EndIf
-
-  If DLC1nVampireRingBeast.Value == 1
-    PlayerRef.EquipItem(DLC1nVampireBloodMagicRingBeast, abPreventRemoval = False, abSilent = True)
-  EndIf
-
-  If DLC1nVampireRingErudite.Value == 1
-    PlayerRef.EquipItem(DLC1nVampireBloodMagicRingErudite, abPreventRemoval = False, abSilent = True)
-  EndIf
-
-  ; Reset vampire item status variables.
-  DLC1nVampireNecklaceBats.SetValue(0)
-  DLC1nVampireNecklaceGargoyle.SetValue(0)
-  DLC1nVampireRingBeast.SetValue(0)
-  DLC1nVampireRingErudite.SetValue(0)
 
   ; We always have to call this in Shutdown, or the spell loaded counts will
   ; get out of sync.
