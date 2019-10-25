@@ -20,7 +20,7 @@ Event OnUpdate()
 
   Actor PlayerRef = Game.GetPlayer()
 
-  If PlayerVampireQuest.VampireSafeToUpdate(PlayerRef)
+  If PlayerVampireQuest.VampireSafeToUpdate()
     PlayerVampireQuest.VampireProgression(PlayerRef, VampireStageToSet)
   Else
     RegisterForSingleUpdate(10.0)

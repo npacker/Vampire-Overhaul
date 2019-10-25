@@ -26,9 +26,6 @@ Event OnRaceSwitchComplete()
 
   Actor PlayerRef = GetReference() as Actor
 
-  PlayerRef.SetGhost(False)
-  PlayerRef.GetActorBase().SetInvulnerable(False)
-
   DLC1BatsCount.Value = 0
   DLC1MistformCount.Value = 0
   DLC1ReflexesCount.Value = 0

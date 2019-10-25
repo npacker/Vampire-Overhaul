@@ -10,17 +10,17 @@ PlayerVampireQuestScript Property PlayerVampireQuest Auto
 
 DLC1VampireTurnScript Property DLC1VampireTurn Auto
 
+Actor Property PlayerRef Auto
+
+Int Property FeedHealthRestored = 100 Auto
+
+Int Property BiteHealthRestored = 50 Auto
+
 ;-------------------------------------------------------------------------------
 ;
 ; VARIABLES
 ;
 ;-------------------------------------------------------------------------------
-
-Int FeedHealthRestored = 100
-
-Int BiteHealthRestored = 50
-
-Actor PlayerRef
 
 Actor TargetRef
 
@@ -34,8 +34,8 @@ State CombatFeed
 
   Event OnUpdate()
     PlayerRef.RestoreActorValue("health", FeedHealthRestored)
-    TargetRef.EndDeferredKill()
     TargetRef.Kill(PlayerRef)
+    TargetRef.EndDeferredKill()
     Game.SetPlayerAIDriven(False)
     Game.IncrementStat("Necks Bitten")
     GoToState("")
@@ -47,8 +47,8 @@ State CombatBite
 
   Event OnUpdate()
     PlayerRef.RestoreActorValue("health", BiteHealthRestored)
-    TargetRef.EndDeferredKill()
     TargetRef.Kill(PlayerRef)
+    TargetRef.EndDeferredKill()
     Game.SetPlayerAIDriven(False)
     Game.IncrementStat("Necks Bitten")
     GoToState("")
@@ -64,7 +64,6 @@ EndState
 
 Function HandleFeed(Actor Target)
 
-  PlayerRef = Game.GetPlayer()
   TargetRef = Target
 
   DLC1VampireTurn.PlayerBitesMe(TargetRef)
@@ -78,7 +77,6 @@ EndFunction
 
 Function HandleBite(Actor Target)
 
-  PlayerRef = Game.GetPlayer()
   TargetRef = Target
 
   DLC1VampireTurn.PlayerBitesMe(TargetRef)
@@ -91,7 +89,6 @@ EndFunction
 
 Function HandleCombatFeed(Actor Target)
 
-  PlayerRef = Game.GetPlayer()
   TargetRef = Target
 
   TargetRef.StartDeferredKill()
@@ -107,7 +104,6 @@ EndFunction
 
 Function HandleCombatBite(Actor Target)
 
-  PlayerRef = Game.GetPlayer()
   TargetRef = Target
 
   TargetRef.StartDeferredKill()

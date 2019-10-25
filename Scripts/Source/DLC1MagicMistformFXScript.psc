@@ -9,6 +9,8 @@ Float fLevStateStartValue = 0.0
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 
+  akTarget.SetGhost(True)
+
   fLevStateStartValue = DLC1VampireLevitateStateGlobal.GetValue()
 
   ; We set this to 4.0 only here, so we can tell later if the state is changed.
@@ -59,5 +61,7 @@ Event OnEffectFinish(Actor akTarget, Actor akCaster)
         abMenu = True, \
         abActivate = True)
   EndIf
+
+  akTarget.SetGhost(False)
 
 EndEvent

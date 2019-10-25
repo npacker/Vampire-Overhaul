@@ -368,6 +368,9 @@ Function PrepShift()
   Start() on DLC1PlayerVampireQuest.
 }
 
+  ; Dispel summons.
+  DispelSummons()
+
   ; Set up the UI restrictions.
   PreTransformDisablePlayerControls()
   Game.EnableFastTravel(False)
@@ -379,9 +382,6 @@ Function PrepShift()
   ; Screen effect.
   VampireChange.Apply()
   VampireIMODSound.Play(PlayerRef)
-
-  ; Dispel summons.
-  DispelSummons()
 
   ; Set up perks/abilities.
   PlayerRef.SetActorValue("GrabActorOffset", 70)
@@ -415,11 +415,6 @@ Function InitialShift()
   If PlayerRef.IsDead()
     Return
   EndIf
-
-  ; The player needs to be invulnerable during the transition.
-  ; OnRaceSwitchcomplete() will disable the invunlerability.
-  PlayerRef.GetActorBase().SetInvulnerable(True)
-  PlayerRef.SetGhost(True)
 
   ; Check if the player is wearing any Night Power/Blood Magic artifacts.
   If PlayerRef.isEquipped(DLC1nVampireBloodMagicRingBeast)
@@ -611,9 +606,6 @@ Function ActuallyShiftBackIfNecessary()
   ; We now add the effect with a long duration and remove it later.
   DLC1VampireChangeBackFXS.Play(PlayerRef)
 
-  ; Dispel summons.
-  DispelSummons()
-
   ; Remove the light foot perk if the player has not earned it.
   If !DLC1HasLightfoot
     PlayerRef.RemovePerk(Lightfoot)
@@ -765,7 +757,6 @@ Function EstablishLeveledSpells()
 
   Int PlayerLevel = PlayerRef.GetLevel()
 
-  ; Establish the leveled Vampire Drain spell.
   If PlayerLevel <= 10
     LeveledDrainSpell = DLC1VampireDrain05
     LeveledRaiseDeadSpell = DLC1VampireRaiseDeadLeftHand01
@@ -783,7 +774,6 @@ Function EstablishLeveledSpells()
     LeveledRaiseDeadSpell = DLC1VampireRaiseDeadLeftHand05
   EndIf
 
-  ; Establish the Leveled Vampire Ability.
   If PlayerLevel <= 10
     LeveledAbility = DLC1PlayerVampireLvl10AndBelowAbility
   ElseIf PlayerLevel <= 15
@@ -851,10 +841,6 @@ Function CheckPerkSpells()
 EndFunction
 
 Function DispelSummons()
-{
-  Dispel summoning spells, such as from the school of conjuration or werewolf
-  form.
-}
 
   Int Count = VampireDispelList.GetSize()
 
@@ -870,11 +856,7 @@ Function DispelSummons()
 EndFunction
 
 Function VampireLordSetHate(Bool Hate = True)
-{
-  Set whether the player should be an enemy of vampire hate factions.
-}
 
-  ; Add the player to the vampire lord faction.
   If Hate
     PlayerRef.AddToFaction(DLC1PlayerVampireLordFaction)
   Else
@@ -893,9 +875,6 @@ Function VampireLordSetHate(Bool Hate = True)
 EndFunction
 
 Function RegisterForEvents()
-{
-  Register for all of the animation events we care about.
-}
 
   DCL1VampireLevitateStateGlobal.SetValue(1)
 
@@ -909,9 +888,6 @@ Function RegisterForEvents()
 EndFunction
 
 Function UnregisterForEvents()
-{
-  Unregister for all registered animation events.
-}
 
   UnRegisterForAnimationEvent(PlayerRef, Ground)
   UnRegisterForAnimationEvent(PlayerRef, Levitate)
@@ -982,9 +958,8 @@ Function UnloadSpells()
 EndFunction
 
 Function PreTransformDisablePlayerControls()
-{
-  Disable controls during the transformation.
-}
+
+  (PlayerRef.GetBaseObject() as ActorBase).SetInvulnerable(True)
 
   Game.SetInChargen(True, True, False)
 
@@ -999,28 +974,7 @@ Function PreTransformDisablePlayerControls()
 
 EndFunction
 
-Function PostRevertEnablePlayerControls()
-{
-  Enable controls after revert form.
-}
-
-  Game.EnablePlayerControls( \
-      abMovement = True, \
-      abFighting = True, \
-      abCamSwitch = True, \
-      abMenu = True, \
-      abActivate = True, \
-      abJournalTabs = True, \
-      aiDisablePOVType = 1)
-
-  Game.SetInChargen(False, False, False)
-
-EndFunction
-
 Function VampireLordEnablePlayerControls()
-{
-  Enable controls appropriate for Vamprie Lord form.
-}
 
   Game.EnablePlayerControls( \
       abMovement = True, \
@@ -1031,16 +985,26 @@ Function VampireLordEnablePlayerControls()
       abJournalTabs = True, \
       aiDisablePOVType = 1)
 
-  Game.DisablePlayerControls( \
-      abMovement = False, \
-      abFighting = False, \
+  Game.SetInChargen(False, False, False)
+
+  (PlayerRef.GetBaseObject() as ActorBase).SetInvulnerable(False)
+
+EndFunction
+
+Function PostRevertEnablePlayerControls()
+
+  Game.EnablePlayerControls( \
+      abMovement = True, \
+      abFighting = True, \
       abCamSwitch = True, \
-      abMenu = False, \
-      abActivate = False, \
-      abJournalTabs = False, \
+      abMenu = True, \
+      abActivate = True, \
+      abJournalTabs = True, \
       aiDisablePOVType = 1)
 
   Game.SetInChargen(False, False, False)
+
+  (PlayerRef.GetBaseObject() as ActorBase).SetInvulnerable(False)
 
 EndFunction
 
