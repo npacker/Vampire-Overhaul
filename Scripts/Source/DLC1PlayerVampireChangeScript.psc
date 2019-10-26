@@ -146,8 +146,12 @@ Spell Property DLC1VampireRaiseDeadLeftHand03 Auto
 Spell Property DLC1VampireRaiseDeadLeftHand04 Auto
 Spell Property DLC1VampireRaiseDeadLeftHand05 Auto
 
+Spell Property LeveledConjureGargoyleSpell Auto
+Spell Property DLC1ConjureGargoyleLeftHand01 Auto
+Spell Property DLC1ConjureGargoyleLeftHand02 Auto
+Spell Property DLC1ConjureGargoyleLeftHand03 Auto
+
 Spell Property DLC1VampiresGrip Auto
-Spell Property DLC1ConjureGargoyleLeftHand Auto
 Spell Property DLC1CorpseCurse Auto
 
 Spell Property DLC1VampireDetectLife Auto
@@ -316,7 +320,7 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
     PlayerRef.RemoveSpell(LeveledRaiseDeadSpell)
     PlayerRef.RemoveSpell(DlC1CorpseCurse)
     PlayerRef.RemoveSpell(DLC1VampiresGrip)
-    PlayerRef.RemoveSpell(DLC1ConjureGargoyleLeftHand)
+    PlayerRef.RemoveSpell(LeveledConjureGargoyleSpell)
   EndIf
   ; END LANDED
 
@@ -371,6 +375,10 @@ Function PrepShift()
   ; Dispel summons.
   DispelSummons()
 
+  ; First, establish our leveled spells. The player cannot level up while
+  ; a Vampire Lord so we only need to do this once.
+  EstablishLeveledSpells()
+
   ; Set up the UI restrictions.
   PreTransformDisablePlayerControls()
   Game.EnableFastTravel(False)
@@ -379,19 +387,15 @@ Function PrepShift()
   Game.SetBeastForm(True)
   PlayerRef.AddPerk(DLC1VampireActivationBlocker)
 
-  ; Screen effect.
-  VampireChange.Apply()
-  VampireIMODSound.Play(PlayerRef)
-
   ; Set up perks/abilities.
   PlayerRef.SetActorValue("GrabActorOffset", 70)
 
-  ; First, establish our leveled spells. The player cannot level up while
-  ; a Vampire Lord so we only need to do this once.
-  EstablishLeveledSpells()
-
   ; Preload the spells the player can equip.
   PreloadSpells()
+
+  ; Screen effect and sound.
+  VampireChange.Apply()
+  VampireIMODSound.Play(PlayerRef)
 
   ; Indicate that we're finished prepping. This is used
   ; to prevent HandlePlayerLoadGame from calling Preload when we don't need it.
@@ -586,6 +590,11 @@ Function ActuallyShiftBackIfNecessary()
 
   ShiftingBack = True
 
+  ; Abort if the player has died.
+  If PlayerRef.IsDead()
+    Return
+  EndIf
+
   ; Disable save and wait while reverting form.
   PreTransformDisablePlayerControls()
 
@@ -593,11 +602,6 @@ Function ActuallyShiftBackIfNecessary()
   ; a Levitate event after we've set DLC1VampireLevitateStateGlobal to 1, and
   ; the value would be incorrect.
   UnregisterForEvents()
-
-  ; Abort if the player has died.
-  If PlayerRef.IsDead()
-    Return
-  EndIf
 
   ; Apply revert screen effects and sound.
   VampireChange.Apply()
@@ -645,8 +649,8 @@ Function ActuallyShiftBackIfNecessary()
   PlayerRef.RemoveSpell(LeveledAbility)
   PlayerRef.RemoveSpell(LeveledDrainSpell)
   PlayerRef.RemoveSpell(LeveledRaiseDeadSpell)
+  PlayerRef.RemoveSpell(LeveledConjureGargoyleSpell)
 
-  PlayerRef.RemoveSpell(DLC1ConjureGargoyleLeftHand)
   PlayerRef.RemoveSpell(DLC1CorpseCurse)
   PlayerRef.RemoveSpell(DLC1NightCloak)
   PlayerRef.RemoveSpell(DLC1Revert)
@@ -757,6 +761,14 @@ Function EstablishLeveledSpells()
 
   Int PlayerLevel = PlayerRef.GetLevel()
 
+  If PlayerLevel <= 25
+    LeveledConjureGargoyleSpell = DLC1ConjureGargoyleLeftHand01
+  ElseIf PlayerLevel <= 40
+    LeveledConjureGargoyleSpell = DLC1ConjureGargoyleLeftHand02
+  Else
+    LeveledConjureGargoyleSpell = DLC1ConjureGargoyleLeftHand03
+  EndIf
+
   If PlayerLevel <= 10
     LeveledDrainSpell = DLC1VampireDrain05
     LeveledRaiseDeadSpell = DLC1VampireRaiseDeadLeftHand01
@@ -814,8 +826,8 @@ Function CheckPerkSpells()
   EndIf
 
   If PlayerRef.HasPerk(DLC1GargoylePerk) \
-      && !PlayerRef.HasSpell(DLC1ConjureGargoyleLeftHand)
-    PlayerRef.AddSpell(DLC1ConjureGargoyleLeftHand, False)
+      && !PlayerRef.HasSpell(LeveledConjureGargoyleSpell)
+    PlayerRef.AddSpell(LeveledConjureGargoyleSpell, False)
   EndIf
 
   If PlayerRef.HasPerk(DLC1MistformPerk) \
@@ -937,7 +949,7 @@ Function PreloadSpells()
 
   LeveledDrainSpell.Preload()
   LeveledRaiseDeadSpell.Preload()
-  DLC1ConjureGargoyleLeftHand.Preload()
+  LeveledConjureGargoyleSpell.Preload()
   DLC1CorpseCurse.Preload()
   DLC1VampiresGrip.Preload()
 
@@ -951,7 +963,7 @@ Function UnloadSpells()
 
   LeveledDrainSpell.Unload()
   LeveledRaiseDeadSpell.Unload()
-  DLC1ConjureGargoyleLeftHand.Unload()
+  LeveledConjureGargoyleSpell.Unload()
   DLC1CorpseCurse.Unload()
   DLC1VampiresGrip.Unload()
 

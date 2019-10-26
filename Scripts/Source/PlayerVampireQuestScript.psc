@@ -77,9 +77,6 @@ Message Property VampireFeedMessage Auto
 Message Property VampireStageProgressionMessage Auto
 { Message displayed when hunger grows and stage advances. }
 
-Message Property VampireFedMessage Auto
-{ Messaged displayed when you attempt to feed when already fully-fed. }
-
 Message Property VampireStage4Message Auto
 { Message displayed upon reaching Stage 4 Vampirism. }
 
@@ -370,7 +367,7 @@ Function VampireChange(Actor Target)
   VampireStopFeedTimer()
   VampireDisablePlayerControls()
   VampirePlayChange()
-  PlayerRef.SetRace(PlayerVampireRaceController.GetChangeRace())
+  PlayerRef.SetRace(PlayerVampireRaceController.GetVampireRace())
   VampireRemoveSpells(VampireImmuneDiseases)
   VampireUpdateRank()
   VampireShowRankMessage()
@@ -400,7 +397,7 @@ Function VampireCure(Actor Target)
   VampireUpdateRank(Reset = True)
   VampireProgression(PlayerRef, 0)
   PlayerRef.DispelSpell(VampireHuntersSight)
-  PlayerRef.SetRace(PlayerVampireRaceController.GetChangeRace())
+  PlayerRef.SetRace(PlayerVampireRaceController.GetCureRace())
   PlayerRef.RemoveSpell(VampireHuntersSight)
   VampireEnablePlayerControls()
   Game.IncrementStat("Vampirism Cures")
@@ -465,7 +462,7 @@ Function VampireSetHated(Bool Hate = True)
 
   Int Index = DLC1VampireHateFactions.GetSize()
 
-  While (Index)
+  While Index
     Index -= 1
     (DLC1VampireHateFactions.GetAt(Index) as Faction).SetPlayerEnemy(Hate)
   EndWhile
