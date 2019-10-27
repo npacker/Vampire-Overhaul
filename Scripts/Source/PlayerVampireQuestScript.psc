@@ -464,7 +464,11 @@ Function VampireSetHated(Bool Hate = True)
 
   While Index
     Index -= 1
-    (DLC1VampireHateFactions.GetAt(Index) as Faction).SetPlayerEnemy(Hate)
+
+    Faction HateFaction = (DLC1VampireHateFactions.GetAt(Index) as Faction)
+
+    HateFaction.SetEnemy(VampirePCFaction)
+    HateFaction.SetPlayerEnemy(Hate)
   EndWhile
 
 EndFunction

@@ -483,6 +483,9 @@ Function StartTracking()
   ; Cause the player to be attacked on sight.
   VampireLordSetHate(True)
 
+  ; Create a detection event in case the player is hidden when they turn.
+  PlayerRef.CreateDetectionEvent(PlayerRef, 500)
+
   ; Alert anyone nearby that they should now know the player is a vampire.
   ; Do not sned the transformation alert if the player is in Castle Volkihar.
   If !DLC1SendWerewolfLocationExceptions.HasForm(PlayerRef.GetCurrentLocation())
@@ -879,7 +882,11 @@ Function VampireLordSetHate(Bool Hate = True)
 
   While Index
     Index -= 1
-    (DLC1VampireHateFactions.GetAt(Index) as Faction).SetPlayerEnemy(Hate)
+
+    Faction HateFaction = DLC1VampireHateFactions.GetAt(Index) as Faction
+
+    HateFaction.SetEnemy(DLC1PlayerVampireLordFaction)
+    HateFaction.SetPlayerEnemy(Hate)
   EndWhile
 
   PlayerRef.SetAttackActorOnSight(Hate)
