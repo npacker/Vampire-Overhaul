@@ -13,6 +13,8 @@ Scriptname DLC1VampireTurnScript extends Quest
 
 PlayerVampireQuestScript Property PlayerVampireQuest Auto
 
+DLC1VQ02HarkonQuestScript Property DLC1VQ02Harkon Auto
+
 Keyword Property Vampire Auto
 
 Actor Property PlayerRef Auto
@@ -39,6 +41,7 @@ ReferenceAlias Property DLC1VQ03VampireDexion Auto
 Perk Property DLC1VampireTurnPerk Auto
 
 Spell Property DLC1VampireChange Auto
+Spell Property DLC1VampireChangeFX Auto
 
 Idle Property IdleVampireStandingFeedFront_Loose Auto
 Idle Property pa_VampireLordChangePlayer Auto
@@ -214,6 +217,12 @@ EndFunction
 ; PLAYER IS TURNED INTO A VAMPIRE BY AN NPC.
 ;-------------------------------------------------------------------------------
 
+Function HarkonBitesPlayer(Bool isPlayerRecieveingHarkonsGift = True)
+
+  DLC1VQ02Harkon.BitePlayer()
+
+EndFunction
+
 Function ReceiveSeranasGift(Actor GiftGiver)
 {
   Convenience function for Serana to transform the player into a vampire lord.
@@ -254,15 +263,28 @@ Function ReceiveHarkonsGift(Actor GiftGiver, Bool IsSeranaGiving = False, Bool P
 EndFunction
 
 ;-------------------------------------------------------------------------------
+; NPC TRANSFORMS INTO A VAMPIRE.
+;-------------------------------------------------------------------------------
+
+Function NPCTransformIntoVampireLord(Actor ActorToTurn, Bool RoyalOutfit = False, Bool HarkonForceGreet = False)
+
+  DLC1VampireChangeFX.Cast(ActorToTurn, ActorToTurn)
+
+EndFunction
+
+Function HarkonChangedRace()
+
+  DLC1VQ02Harkon.Start()
+  DLC1VQ02Harkon.ChangedRace()
+
+EndFunction
+
+;-------------------------------------------------------------------------------
 ; OBSOLETE FUNCTIONS.
 ;-------------------------------------------------------------------------------
 
 Function NameVampireLord(Actor ActorToRename)
-{
-  Start storing text.
-}
 
-  SetStage(10)
   DisguisedVampireLordName.ForceRefTo(ActorToRename)
   DisguisedVampireLordName.Clear()
 
