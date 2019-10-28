@@ -61,6 +61,10 @@ Keyword Property DLC1VampireFeedBystanderStart Auto
 ;
 ;-------------------------------------------------------------------------------
 
+;-------------------------------------------------------------------------------
+; NPC IS TURNED INTO A VAMPIRE BY THE PLAYER.
+;-------------------------------------------------------------------------------
+
 Function PlayerBitesMe(Actor ActorToTurn)
 {
   Used for NPCs to be transformed into a vampire.
@@ -88,6 +92,9 @@ Function StartQuestDLC1VampireFeedBystander(Actor ActorToTurn)
 EndFunction
 
 Function TurnMeIntoVampire(Actor ActorToTurn)
+{
+  Called from PlayerBitesMe().
+}
 
   ReferenceAlias OpenReferenceAlias = GetNextAlias()
 
@@ -105,7 +112,23 @@ Function TurnMeIntoVampire(Actor ActorToTurn)
 
 EndFunction
 
+Function PlayerChangedLocationCompleteChange()
+{
+  Called by DLC1VampireTurnPlayerScript when player changes location.
+}
+
+  CompleteChange(NewVampire1)
+  CompleteChange(NewVampire2)
+  CompleteChange(NewVampire3)
+  CompleteChange(NewVampire4)
+  CompleteChange(NewVampire5)
+
+EndFunction
+
 Function CompleteChange(ReferenceAlias AliasToTurn)
+{
+  Called from PlayerChangedLocationCompleteChange().
+}
 
   Actor ActorToTurn = AliasToTurn.GetReference() as Actor
 
@@ -116,10 +139,6 @@ Function CompleteChange(ReferenceAlias AliasToTurn)
     Location ATTLoc = ActorToTurn.GetCurrentLocation()
 
     If ATTLoc == None || !PlayerRef.IsInLocation(ATTLoc)
-      ; SETTING RACE CAUSED PROBLEMS, we are now only giving them red eyes.
-      ; Race VampRace = GetVampireRace(ActorToTurn)
-      ; ActorToTurn.SetRace(VampRace)
-
       ((Self as Quest) as DLC1ReferenceAliasArrayScript).ForceRefInto(ActorToTurn)
       ActorToTurn.AddToFaction(DLC1PlayerTurnedVampire)
 
@@ -138,20 +157,10 @@ Function CompleteChange(ReferenceAlias AliasToTurn)
 
 EndFunction
 
-Function PlayerChangedLocationCompleteChange()
-{
-  Called by DLC1VampireTurnPlayerScript when player changes location
-}
-
-  CompleteChange(NewVampire1)
-  CompleteChange(NewVampire2)
-  CompleteChange(NewVampire3)
-  CompleteChange(NewVampire4)
-  CompleteChange(NewVampire5)
-
-EndFunction
-
 ReferenceAlias Function GetNextAlias()
+{
+  Called from TurnMeIntoVampire().
+}
 
   ReferenceAlias ReferenceAliasToReturn
 
@@ -188,7 +197,7 @@ EndFunction
 
 Function MakeMyEyesRed(ReferenceAlias AliasWhoseActorToGiveRedEyes)
 {
-  Called OnLoad() by DLC1VampireTurnRedEyes, and by MakeAliasesEyesRed()
+  Called by OnLoad() by DLC1VampireTurnRedEyes, and by MakeAliasesEyesRed().
 }
 
   Actor ActorToChange = AliasWhoseActorToGiveRedEyes.GetReference() as Actor
@@ -200,6 +209,10 @@ Function MakeMyEyesRed(ReferenceAlias AliasWhoseActorToGiveRedEyes)
   EndIf
 
 EndFunction
+
+;-------------------------------------------------------------------------------
+; PLAYER IS TURNED INTO A VAMPIRE BY AN NPC.
+;-------------------------------------------------------------------------------
 
 Function ReceiveSeranasGift(Actor GiftGiver)
 {
@@ -225,35 +238,28 @@ Function ReceiveHarkonsGift(Actor GiftGiver, Bool IsSeranaGiving = False, Bool P
     AnimPlayed = GiftGiver.PlayIdleWithTarget(pa_VampireLordChangePlayer, PlayerRef)
   EndIf
 
+  If C00.PlayerHasBeastBlood
+    C00.CurePlayer()
+  EndIf
+
   If !PlayerRef.GetRace().HasKeyword(Vampire)
     PlayerVampireQuest.VampireChange(PlayerRef)
   Else
     Utility.Wait(3.0)
   EndIf
 
-  If C00.PlayerHasBeastBlood
-    C00.CurePlayer()
-  EndIf
-
   PlayerRef.AddSpell(DLC1VampireChange)
   PlayerRef.AddPerk(DLC1VampireTurnPerk)
-
-  ; Was adding this spell so new vampire who didn't have a calm spell and didn't
-  ; know about getting calm power at higher level wouldn't be confused by the
-  ; quest. Bruce asked we try it without and if we get push back during playtests
-  ; we can put it back in. His concern is having two very similar powers.
-  ;
-  ; PlayerRef.AddSpell(DLC1VampireCalm, abVerbose = False)
 
 EndFunction
 
 ;-------------------------------------------------------------------------------
-; OBSOLETE FUNCTIONS
+; OBSOLETE FUNCTIONS.
 ;-------------------------------------------------------------------------------
 
 Function NameVampireLord(Actor ActorToRename)
 {
-  // Start storing text.
+  Start storing text.
 }
 
   SetStage(10)

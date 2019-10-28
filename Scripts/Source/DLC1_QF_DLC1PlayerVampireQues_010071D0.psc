@@ -4,22 +4,22 @@ Scriptname DLC1_QF_DLC1PlayerVampireQues_010071D0 Extends Quest Hidden
 
 ;BEGIN ALIAS PROPERTY Player
 ;ALIAS PROPERTY TYPE ReferenceAlias
-ReferenceAlias Property Alias_Player Auto
+ReferenceAlias Property Player Auto
 ;END ALIAS PROPERTY
 
 ;BEGIN ALIAS PROPERTY PlayerMistform
 ;ALIAS PROPERTY TYPE ReferenceAlias
-ReferenceAlias Property Alias_PlayerMistform Auto
+ReferenceAlias Property PlayerMistform Auto
 ;END ALIAS PROPERTY
 
 ;BEGIN ALIAS PROPERTY PlayerReflexes
 ;ALIAS PROPERTY TYPE ReferenceAlias
-ReferenceAlias Property Alias_PlayerReflexes Auto
+ReferenceAlias Property PlayerReflexes Auto
 ;END ALIAS PROPERTY
 
 ;BEGIN ALIAS PROPERTY PlayerBats
 ;ALIAS PROPERTY TYPE ReferenceAlias
-ReferenceAlias Property Alias_PlayerBats Auto
+ReferenceAlias Property PlayerBats Auto
 ;END ALIAS PROPERTY
 
 ;BEGIN FRAGMENT Fragment_2
@@ -113,7 +113,3 @@ EndFunction
 ;END FRAGMENT
 
 ;END FRAGMENT CODE - Do not edit anything between this and the begin comment
-
-Perk Property WerewolfFeedPerk  Auto  
-
-Perk Property DLC1PlayerWerewolfSavageFeeding  Auto  

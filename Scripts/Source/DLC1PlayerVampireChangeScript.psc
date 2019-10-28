@@ -71,7 +71,7 @@ FormList Property DLC1SendWerewolfLocationExceptions Auto
 FormList Property VampireDispelList Auto
 { Vampire spells that should be dispelled. }
 
-Spell Property CurrentEquippedSpell Auto
+Spell Property CurrentEquippedLeftSpell Auto
 { The spell the vampire lord currently has equipped. }
 
 Spell Property LastEquippedPower Auto
@@ -307,12 +307,12 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
     DCL1VampireLevitateStateGlobal.SetValue(1)
 
     ; Update the currently equipped left hand spell.
-    CurrentEquippedSpell = PlayerRef.GetEquippedSpell(0)
+    CurrentEquippedLeftSpell = PlayerRef.GetEquippedSpell(0)
 
     ; There may not be a currently equipped spell when on the ground. Store it
     ; so that it can be re-equipped next time the player levitates.
-    If CurrentEquippedSpell
-      PlayerRef.UnequipSpell(CurrentEquippedSpell, 0)
+    If CurrentEquippedLeftSpell
+      PlayerRef.UnequipSpell(CurrentEquippedLeftSpell, 0)
     EndIf
 
     ; Now unequip and remove whatever spells are in the left & right hands.
@@ -344,14 +344,14 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
       (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell = LeveledRaiseDeadSpell
     EndIf
 
-    CurrentEquippedSpell = (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell
+    CurrentEquippedLeftSpell = (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell
 
     ; Check to see if we need to add any perk-related spells.
     ; We need to do this here because the player may have added new perks since
     ; the last time.
     CheckPerkSpells()
     PlayerRef.AddSpell(LeveledRaiseDeadSpell, False)
-    PlayerRef.EquipSpell(CurrentEquippedSpell, 0)
+    PlayerRef.EquipSpell(CurrentEquippedLeftSpell, 0)
     PlayerRef.EquipSpell(LeveledDrainSpell, 1)
   EndIf
   ; END LEVITATING
@@ -375,9 +375,15 @@ Function PrepShift()
   ; Dispel summons.
   DispelSummons()
 
+  ; Set up grab offset for Vampiric Grip.
+  PlayerRef.SetActorValue("GrabActorOffset", 70)
+
   ; First, establish our leveled spells. The player cannot level up while
   ; a Vampire Lord so we only need to do this once.
   EstablishLeveledSpells()
+
+  ; Preload the spells the player can equip.
+  PreloadSpells()
 
   ; Set up the UI restrictions.
   PreTransformDisablePlayerControls()
@@ -387,11 +393,10 @@ Function PrepShift()
   Game.SetBeastForm(True)
   PlayerRef.AddPerk(DLC1VampireActivationBlocker)
 
-  ; Set up perks/abilities.
-  PlayerRef.SetActorValue("GrabActorOffset", 70)
-
-  ; Preload the spells the player can equip.
-  PreloadSpells()
+  ; Abort if the player has died.
+  If PlayerRef.IsDead()
+    Return
+  EndIf
 
   ; Screen effect and sound.
   VampireChange.Apply()
@@ -415,10 +420,6 @@ Function InitialShift()
   EndIf
 
   Transformed = True
-
-  If PlayerRef.IsDead()
-    Return
-  EndIf
 
   ; Check if the player is wearing any Night Power/Blood Magic artifacts.
   If PlayerRef.isEquipped(DLC1nVampireBloodMagicRingBeast)
@@ -480,22 +481,7 @@ Function StartTracking()
   ;
   ; PlayerRef.EquipItem(DLC1ClothesVampireLordArmor, abPreventRemoval = True, abSilent = True)
 
-  ; Cause the player to be attacked on sight.
-  VampireLordSetHate(True)
-
-  ; Create a detection event in case the player is hidden when they turn.
-  PlayerRef.CreateDetectionEvent(PlayerRef, 500)
-
-  ; Alert anyone nearby that they should now know the player is a vampire.
-  ; Do not sned the transformation alert if the player is in Castle Volkihar.
-  If !DLC1SendWerewolfLocationExceptions.HasForm(PlayerRef.GetCurrentLocation())
-    Game.SendWereWolfTransformation()
-  EndIf
-
-  ; But they also don't know that it's you.
-  Game.SetPlayerReportCrime(False)
-
-  ; Remove vampire versions of sun damage.
+  ; Remove Vampire versions of sun damage.
   PlayerRef.RemoveSpell(VampireSunDamage01)
   PlayerRef.RemoveSpell(VampireSunDamage02)
   PlayerRef.RemoveSpell(VampireSunDamage03)
@@ -538,6 +524,21 @@ Function StartTracking()
 
   ; Ensure the Vampire Lord change ability has been removed.
   PlayerRef.DispelSpell(DLC1VampireChange)
+
+  ; Cause the player to be attacked on sight.
+  VampireLordSetHate(True)
+
+  ; Create a detection event in case the player is hidden when they turn.
+  PlayerRef.CreateDetectionEvent(PlayerRef, 500)
+
+  ; Alert anyone nearby that they should now know the player is a vampire.
+  ; Do not sned the transformation alert if the player is in Castle Volkihar.
+  If !DLC1SendWerewolfLocationExceptions.HasForm(PlayerRef.GetCurrentLocation())
+    Game.SendWereWolfTransformation()
+  EndIf
+
+  ; But they also don't know that it's you.
+  Game.SetPlayerReportCrime(False)
 
   ; We're done with the transformation handling. Player is now free to roam as a
   ; Vampire Lord.
@@ -610,7 +611,7 @@ Function ActuallyShiftBackIfNecessary()
   VampireChange.Apply()
   VampireIMODSound.Play(PlayerRef)
 
-  ; We now add the effect with a long duration and remove it later.
+  ; We now add the visual FX with a long duration and remove it later.
   DLC1VampireChangeBackFXS.Play(PlayerRef)
 
   ; Remove the light foot perk if the player has not earned it.
@@ -621,15 +622,14 @@ Function ActuallyShiftBackIfNecessary()
   ; Remove fall damage reduction.
   PlayerRef.RemovePerk(DLC1FallDamageReduction)
 
-  ; Save CurrentEquippedSpell to re-equip when returning to Vampire Lord form.
-  CurrentEquippedSpell = PlayerRef.GetEquippedSpell(0)
-  (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell = CurrentEquippedSpell
+  ; Save CurrentEquippedLeftSpell to re-equip when returning to Vampire Lord form.
+  CurrentEquippedLeftSpell = PlayerRef.GetEquippedSpell(0)
+  (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell = CurrentEquippedLeftSpell
 
   ; Save LastEquippedPower to re-equip when returning to Vampire Lord form.
   (DialogueGenericVampire as VampireQuestScript).LastPower = LastEquippedPower
 
-  ; Ensure the player can't die if they have lost a greater amount of health
-  ; than they have in their normal form.
+  ; Ensure attributes are at a reasonable level after changing back.
   Float CurrentHealth = PlayerRef.GetActorValue("health")
 
   If CurrentHealth <= 100
@@ -677,11 +677,6 @@ Function ActuallyShiftBackIfNecessary()
   ; abilities.
   PlayerVampireQuest.VampireProgression(PlayerRef, PlayerVampireQuest.VampireStatus, Verbose = False)
 
-  ; Remove vampire lord armor.
-  ; Int VampireLordArmorCount = PlayerRef.GetItemCount(DLC1ClothesVampireLordArmor)
-  ;
-  ; PlayerRef.RemoveItem(DLC1ClothesVampireLordArmor, aiCount = VampireLordArmorCount, abSilent = True)
-
   ; Re-equip vampire items that were equipped before transformation.
   If DLC1nVampireNecklaceBats.Value == 1
     PlayerRef.EquipItem(DLC1nVampireNightPowerNecklaceBats, abPreventRemoval = False, abSilent = True)
@@ -698,6 +693,11 @@ Function ActuallyShiftBackIfNecessary()
   If DLC1nVampireRingErudite.Value == 1
     PlayerRef.EquipItem(DLC1nVampireBloodMagicRingErudite, abPreventRemoval = False, abSilent = True)
   EndIf
+
+  ; Remove vampire lord armor.
+  ; Int VampireLordArmorCount = PlayerRef.GetItemCount(DLC1ClothesVampireLordArmor)
+  ;
+  ; PlayerRef.RemoveItem(DLC1ClothesVampireLordArmor, aiCount = VampireLordArmorCount, abSilent = True)
 
   ; Switch back the player race. This will call OnRaceSwitchComplete() on the
   ; DLC1PlayerVampireScript, which will in turn invoke Shutdown() on this

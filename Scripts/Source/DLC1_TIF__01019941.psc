@@ -23,7 +23,7 @@ EndFunction
 
 ;END FRAGMENT CODE - Do not edit anything between this and the begin comment
 
-DLC1HarkonVampireChangeScript Property DLC1HarkonVampireQuest Auto
+DLC1HarkonVampireChangeScript Property DLC1HarkonVampireQuest  Auto  
 
 GlobalVariable Property DLC1HarkonTransforming  Auto  
 
