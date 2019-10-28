@@ -52,7 +52,7 @@ Float TranslationSpeed = 512.0
 
 Float BatsReformFXDuration = 0.2
 
-Float BatsTransationDelay = 0.2
+Float BatsTranslationDelay = 0.2
 
 String BatSprintOff = "BatSprintOff"
 
@@ -142,8 +142,6 @@ Event OnAnimationEvent(ObjectReference akSource, string asEventName)
 
     Utility.Wait(fSpellEndDelay)
     Caster.DispelSpell(DLC1VampireBats)
-    Utility.Wait(2.0)
-    BatsTranslationLoopContinue = False
   EndIf
 
 EndEvent
@@ -171,6 +169,9 @@ Event OnEffectFinish(Actor akTarget, Actor akCaster)
     DLC1VampireBatsReformBATSFXS.Play(Caster, BatsReformFXDuration)
   EndIf
 
+  Utility.Wait(2.0)
+  BatsTranslationLoopContinue = False
+
 EndEvent
 
 ;-------------------------------------------------------------------------------
@@ -187,11 +188,11 @@ Function BatsTranslationLoop()
 
   While BatsTranslationLoopContinue
     BatsFXActivator.TranslateToRef(Caster, Caster.GetDistance(BatsFXActivator) + TranslationSpeed, 1)
-    Utility.Wait(BatsTransationDelay)
+    Utility.Wait(BatsTranslationDelay)
   EndWhile
 
   BatsFXActivator.TranslateToRef(Caster, TranslationSpeed, 1)
-  Utility.Wait(BatsTransationDelay)
+  Utility.Wait(BatsTranslationDelay)
   BatsFXActivator.Disable()
   BatsFXActivator.Delete()
 
