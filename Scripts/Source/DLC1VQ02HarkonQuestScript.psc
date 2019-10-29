@@ -66,7 +66,6 @@ Function ShiftComplete()
 
     HarkonRef.EquipItem(DLC1ClothesVampireLordRoyalArmor, abPreventRemoval = False, abSilent = True)
     HarkonRef.EquipItem(DLC1VampireLordCape, abPreventRemoval = False, abSilent = True)
-    SetStage(10)
   Else
     HarkonRef.RemoveItem(DLC1ClothesVampireLordRoyalArmor, ArmorItemCount)
     HarkonRef.RemoveItem(DLC1VampireLordCape, CapeItemCount)
