@@ -270,27 +270,21 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
 
   PlayerRef.RemoveSpell(AbVampireSkills)
   PlayerRef.RemoveSpell(AbVampireSkills02)
-
   VampireRemoveLeveledSpells(VampireStrengthSpells)
 
   If Property_VampireStatus == 0
     PlayerRef.RemoveSpell(DLC1VampireChange)
-
     PlayerRef.RemoveSpell(AbVampireChillTouch)
     PlayerRef.RemoveSpell(VampireBloodMemory)
     PlayerRef.RemoveSpell(VampireChampionOfTheNight)
     PlayerRef.RemoveSpell(VampireNightstalker)
-
     PlayerRef.RemoveSpell(VampireInvisibilityPC)
     PlayerRef.RemoveSpell(VampireMesmerizingGaze)
-
-    VampireRemoveLeveledSpells(VampireCharmSpells)
     VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
-
+    VampireRemoveLeveledSpells(VampireCharmSpells)
     VampireRemoveLeveledSpells(AbVampireRankSpells)
     VampireRemoveLeveledSpells(VampireClawsSpells)
     VampireRemoveLeveledSpells(VampireDrainSpells)
-
     VampireRemoveLeveledSpells(AbVampireResistanceSpells)
     VampireRemoveLeveledSpells(AbVampireStageSpells)
     VampireRemoveLeveledSpells(AbVampireWeaknessSpells)
@@ -309,20 +303,16 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
 
     If Property_VampireStatus == 4
       PlayerRef.RemoveSpell(VampireMesmerizingGaze)
-
-      VampireRemoveLeveledSpells(VampireCharmSpells)
       VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
     Else
       PlayerRef.AddSpell(VampireMesmerizingGaze, abVerbose = False)
-
-      VampireAddLeveledSpell(VampireCharmSpells, Property_VampireRank)
       VampireAddLeveledSpell(VampireRaiseThrallSpells, Property_VampireRank)
     EndIf
 
+    VampireAddLeveledSpell(VampireCharmSpells, Property_VampireRank)
     VampireAddLeveledSpell(AbVampireRankSpells, Property_VampireRank)
     VampireAddLeveledSpell(VampireClawsSpells, Property_VampireRank)
     VampireAddLeveledSpell(VampireDrainSpells, Property_VampireRank)
-
     VampireAddLeveledSpell(AbVampireResistanceSpells, 5 - Property_VampireStatus)
     VampireAddLeveledSpell(AbVampireStageSpells, Property_VampireStatus)
     VampireAddLeveledSpell(AbVampireWeaknessSpells, Property_VampireStatus)
