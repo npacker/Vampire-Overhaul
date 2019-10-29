@@ -86,6 +86,9 @@ Message[] Property VampireRankMessages Auto
 PlayerVampireRaceControllerScript Property PlayerVampireRaceController Auto
 { Quest script that handles mapping of race to Vampire race. }
 
+Race Property DLC1VampireBeastRace Auto
+{ Detect if the player is a vampire lord. }
+
 Faction Property VampirePCFaction Auto
 { Stage 4 Vampire faction, ensures hate. }
 
@@ -112,12 +115,6 @@ Static Property XMarker Auto
 
 Sound Property MAGVampireTransform01 Auto
 { Vampire transformation sound. }
-
-MagicEffect Property DLC1VampireChangeEffect Auto
-{ Used to check for Vampire Lord form. }
-
-MagicEffect Property DLC1VampireChangeFXEffect Auto
-{ Used to check for Vampire Lord form. }
 
 Spell Property AbVampireSkills Auto
 { Vanilla Champion of the Night. }
@@ -410,9 +407,8 @@ Bool Function VampireSafeToUpdate()
 
   Return Game.IsMovementControlsEnabled() \
       && Game.IsFightingControlsEnabled() \
+      && PlayerRef.GetRace() != DLC1VampireBeastRace \
       && !PlayerRef.IsInCombat() \
-      && !PlayerRef.HasMagicEffect(DLC1VampireChangeEffect) \
-      && !PlayerRef.HasMagicEffect(DLC1VampireChangeFXEffect) \
       && !Feeding \
       && !Updating \
       && !Transforming
