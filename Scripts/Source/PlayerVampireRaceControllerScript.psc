@@ -11,8 +11,20 @@ Actor Property PlayerRef Auto
 Race Property NordRace Auto
 Race Property NordRaceVampire Auto
 
-Race[] Property PlayableRaces Auto
-Race[] Property VampireRaces Auto
+FormList Property PVRC_PlayableRaces Auto
+FormList Property PVRC_PlayableVampireRaces Auto
+
+;--------------------------------------------------------------------------------
+;
+; EVENTS
+;
+;--------------------------------------------------------------------------------
+
+Event OnInit()
+
+  LoadRaceCompatibility()
+
+EndEvent
 
 ;--------------------------------------------------------------------------------
 ;
@@ -20,19 +32,32 @@ Race[] Property VampireRaces Auto
 ;
 ;--------------------------------------------------------------------------------
 
+Function LoadRaceCompatibility()
+
+  FormList PlayableRaceList = Game.GetFormFromFile(0x000D62, "RaceCompatibility.esm") as FormList
+  FormList PlayableVampireList = Game.GetFormFromFile(0x000D63, "RaceCompatibility.esm") as FormList
+
+  If PlayableRaceList && PlayableVampireList
+    PVRC_PlayableRaces = PlayableRaceList
+    PVRC_PlayableVampireRaces = PlayableVampireList
+  EndIf
+
+EndFunction
+
 Race Function GetVampireRace()
 
-  Race CurrentRace = PlayerRef.GetRace()
-  Race VampireRace = NordRaceVampire
-  Int PlayableIndex = PlayableRaces.Find(CurrentRace)
-  Int VampireIndex = VampireRaces.Find(CurrentRace)
+  Race VampireRace
 
-  If PlayableIndex > -1
-    VampireRace = VampireRaces[PlayableIndex]
-  EndIf
+  Race CurrentRace = PlayerRef.GetRace()
+  Int PlayableIndex = PVRC_PlayableRaces.Find(CurrentRace)
+  Int VampireIndex = PVRC_PlayableVampireRaces.Find(CurrentRace)
 
   If VampireIndex > -1
     VampireRace = CurrentRace
+  ElseIf PlayableIndex > -1
+    VampireRace = PVRC_PlayableVampireRaces.GetAt(PlayableIndex) as Race
+  Else
+    VampireRace = NordRaceVampire
   EndIf
 
   Return VampireRace
@@ -41,17 +66,18 @@ EndFunction
 
 Race Function GetCureRace()
 
-  Race CurrentRace = PlayerRef.GetRace()
-  Race CureRace = NordRace
-  Int PlayableIndex = PlayableRaces.Find(CurrentRace)
-  Int VampireIndex = VampireRaces.Find(CurrentRace)
+  Race CureRace
 
-  If VampireIndex > -1
-    CureRace = PlayableRaces[VampireIndex]
-  EndIf
+  Race CurrentRace = PlayerRef.GetRace()
+  Int PlayableIndex = PVRC_PlayableRaces.Find(CurrentRace)
+  Int VampireIndex = PVRC_PlayableVampireRaces.Find(CurrentRace)
 
   If PlayableIndex > -1
     CureRace = CurrentRace
+  ElseIf VampireIndex > -1
+    CureRace = PVRC_PlayableRaces.GetAt(VampireIndex) as Race
+  Else
+    CureRace = NordRace
   EndIf
 
   Return CureRace

@@ -138,6 +138,7 @@ Spell Property DLC1VampireDrain06 Auto
 Spell Property DLC1VampireDrain07 Auto
 Spell Property DLC1VampireDrain08 Auto
 Spell Property DLC1VampireDrain09 Auto
+Spell Property DLC1VampireDrain10 Auto
 
 Spell Property LeveledRaiseDeadSpell Auto
 Spell Property DLC1VampireRaiseDeadLeftHand01 Auto
@@ -145,6 +146,7 @@ Spell Property DLC1VampireRaiseDeadLeftHand02 Auto
 Spell Property DLC1VampireRaiseDeadLeftHand03 Auto
 Spell Property DLC1VampireRaiseDeadLeftHand04 Auto
 Spell Property DLC1VampireRaiseDeadLeftHand05 Auto
+Spell Property DLC1VampireRaiseDeadLeftHand06 Auto
 
 Spell Property LeveledConjureGargoyleSpell Auto
 Spell Property DLC1ConjureGargoyleLeftHand01 Auto
@@ -784,9 +786,12 @@ Function EstablishLeveledSpells()
   ElseIf PlayerLevel <= 40
     LeveledDrainSpell = DLC1VampireDrain08
     LeveledRaiseDeadSpell = DLC1VampireRaiseDeadLeftHand04
-  Else
+  ElseIf PlayerLevel <= 50
     LeveledDrainSpell = DLC1VampireDrain09
     LeveledRaiseDeadSpell = DLC1VampireRaiseDeadLeftHand05
+  Else
+    LeveledDrainSpell = DLC1VampireDrain10
+    LeveledRaiseDeadSpell = DLC1VampireRaiseDeadLeftHand06
   EndIf
 
   If PlayerLevel <= 10
