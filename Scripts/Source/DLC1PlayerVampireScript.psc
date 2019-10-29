@@ -10,10 +10,6 @@ GlobalVariable Property DLC1BatsCount Auto
 GlobalVariable Property DLC1MistformCount Auto
 GlobalVariable Property DLC1ReflexesCount Auto
 
-GlobalVariable Property DLC1BatsCooldown Auto
-GlobalVariable Property DLC1MistformCooldown Auto
-GlobalVariable Property DLC1ReflexesCooldown Auto
-
 Spell Property CurrentEquippedPower Auto
 
 Event OnPlayerLoadGame()
@@ -29,10 +25,6 @@ Event OnRaceSwitchComplete()
   DLC1BatsCount.Value = 0
   DLC1MistformCount.Value = 0
   DLC1ReflexesCount.Value = 0
-
-  DLC1BatsCooldown.Value = 0
-  DLC1MistformCooldown.Value = 0
-  DLC1ReflexesCooldown.Value = 0
 
   If PlayerRef.GetRace() == DLC1VampireBeastRace
     (GetOwningQuest() as DLC1PlayerVampireChangeScript).StartTracking()

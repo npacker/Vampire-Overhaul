@@ -6,7 +6,6 @@ Message Property DLC1BatsWaitMessage Auto
 Message Property DLC1BatsReadyMessage Auto
 
 GlobalVariable Property DLC1BatsCount Auto
-GlobalVariable Property DLC1BatsCooldown Auto
 
 Float Property BatsCooldown Auto
 
@@ -25,7 +24,6 @@ Event OnSpellCast(Form akSpell)
 
     If DLC1BatsCount.Value >= BatsMaxUses
       DLC1BatsWaitMessage.Show()
-      DLC1BatsCooldown.Value = 1
       PlayerRef.RemoveSpell(DLC1VampireBats)
     EndIf
   EndIf
@@ -40,7 +38,6 @@ Event OnUpdateGameTime()
 
   If DLC1BatsCount.Value >= BatsMaxUses
     DLC1BatsReadyMessage.Show()
-    DLC1BatsCooldown.Value = 0
     PlayerRef.AddSpell(DLC1VampireBats, abVerbose = False)
 
     If PlayerRef.GetEquippedSpell(2) == None

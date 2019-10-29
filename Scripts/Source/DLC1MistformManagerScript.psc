@@ -6,7 +6,6 @@ Message Property DLC1MistformWaitMessage Auto
 Message Property DLC1MistformReadyMessage Auto
 
 GlobalVariable Property DLC1MistformCount Auto
-GlobalVariable Property DLC1MistformCooldown Auto
 
 Float Property MistformCooldown Auto
 
@@ -25,7 +24,6 @@ Event OnSpellCast(Form akSpellCast)
 
     If DLC1MistformCount.Value >= MistformMaxUses
       DLC1MistformWaitMessage.Show()
-      DLC1MistformCooldown.Value = 1
       PlayerRef.RemoveSpell(DLC1VampireMistform)
     EndIf
   EndIf
@@ -40,7 +38,6 @@ Event OnUpdateGameTime()
 
   If DLC1MistformCount.Value >= MistformMaxUses
     DLC1MistformReadyMessage.Show()
-    DLC1MistformCooldown.Value = 0
     PlayerRef.AddSpell(DLC1VampireMistform, abVerbose = False)
 
     If PlayerRef.GetEquippedSpell(2) == None
