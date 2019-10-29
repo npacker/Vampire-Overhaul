@@ -1,1 +1,2 @@
 *.psc text eol=crlf
+*.esp -text
