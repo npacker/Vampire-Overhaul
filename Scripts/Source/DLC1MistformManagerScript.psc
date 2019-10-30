@@ -23,8 +23,10 @@ Event OnSpellCast(Form akSpellCast)
     DLC1MistformCount.Value += 1
 
     If DLC1MistformCount.Value >= MistformMaxUses
+      UnregisterForUpdateGameTime()
       DLC1MistformWaitMessage.Show()
       PlayerRef.RemoveSpell(DLC1VampireMistform)
+      RegisterForSingleUpdateGameTime(MistformCoolDown)
     EndIf
   EndIf
 
@@ -33,8 +35,6 @@ EndEvent
 Event OnUpdateGameTime()
 
   Actor PlayerRef = GetReference() as Actor
-
-  UnregisterForUpdateGameTime()
 
   If DLC1MistformCount.Value >= MistformMaxUses
     DLC1MistformReadyMessage.Show()

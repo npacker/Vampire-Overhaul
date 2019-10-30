@@ -88,7 +88,6 @@ EndEvent
 Event OnAnimationEvent(ObjectReference akSource, string asEventName)
 
   If asEventName == BatSprintOff
-    BatsFX.TranslateToRef(Caster, Caster.GetDistance(BatsFX) * TranslationMult)
     Caster.DispelSpell(DLC1VampireBats)
   EndIf
 
@@ -99,6 +98,8 @@ Event OnEffectFinish(Actor akTarget, Actor akCaster)
   UnRegisterForAnimationEvent(Caster, BatSprintOff)
 
   If BatsIdleSuccess
+    BatsFX.TranslateToRef(Caster, Caster.GetDistance(BatsFX) * TranslationMult)
+
     Utility.Wait(ReformDelay)
 
     If DLC1nVampireNecklaceBats.Value == 1

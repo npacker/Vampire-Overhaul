@@ -23,8 +23,10 @@ Event OnSpellCast(Form akSpellCast)
     DLC1ReflexesCount.Value += 1
 
     If DLC1ReflexesCount.Value >= ReflexesMaxUses
+      UnregisterForUpdateGameTime()
       DLC1ReflexesWaitMessage.Show()
       PlayerRef.RemoveSpell(DLC1SupernaturalReflexes)
+      RegisterForSingleUpdateGameTime(ReflexesCoolDown)
     EndIf
   EndIf
 
@@ -33,8 +35,6 @@ EndEvent
 Event OnUpdateGameTime()
 
   Actor PlayerRef = GetReference() as Actor
-
-  UnregisterForUpdateGameTime()
 
   If  DLC1ReflexesCount.Value >= ReflexesMaxUses
     DLC1ReflexesReadyMessage.Show()

@@ -86,9 +86,6 @@ Message[] Property VampireRankMessages Auto
 PlayerVampireRaceControllerScript Property PlayerVampireRaceController Auto
 { Quest script that handles mapping of race to Vampire race. }
 
-Race Property DLC1VampireBeastRace Auto
-{ Detect if the player is a vampire lord. }
-
 Faction Property VampirePCFaction Auto
 { Stage 4 Vampire faction, ensures hate. }
 
@@ -253,47 +250,14 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
     VampireDisableMenu()
   EndIf
 
-  If NewStage >= 0 && NewStage <= 4
+  If NewStage >= 1 && NewStage <= 4
+    PlayerIsVampire.SetValue(1)
+    VampireFeedReady.SetValue(NewStage - 1)
+
     If Property_VampireStatus != NewStage
       Property_VampireStatus = NewStage
       LastUpdateTime = GameDaysPassed.Value
     EndIf
-
-    If Property_VampireStatus > 0
-      PlayerIsVampire.SetValue(1)
-      VampireFeedReady.SetValue(NewStage - 1)
-    Else
-      PlayerIsVampire.SetValue(0)
-      VampireFeedReady.SetValue(0)
-    EndIf
-  EndIf
-
-  PlayerRef.RemoveSpell(AbVampireSkills)
-  PlayerRef.RemoveSpell(AbVampireSkills02)
-  VampireRemoveLeveledSpells(VampireStrengthSpells)
-
-  If Property_VampireStatus == 0
-    PlayerRef.RemoveSpell(DLC1VampireChange)
-    PlayerRef.RemoveSpell(AbVampireChillTouch)
-    PlayerRef.RemoveSpell(VampireBloodMemory)
-    PlayerRef.RemoveSpell(VampireChampionOfTheNight)
-    PlayerRef.RemoveSpell(VampireNightstalker)
-    PlayerRef.RemoveSpell(VampireInvisibilityPC)
-    PlayerRef.RemoveSpell(VampireMesmerizingGaze)
-    VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
-    VampireRemoveLeveledSpells(VampireCharmSpells)
-    VampireRemoveLeveledSpells(AbVampireRankSpells)
-    VampireRemoveLeveledSpells(VampireClawsSpells)
-    VampireRemoveLeveledSpells(VampireDrainSpells)
-    VampireRemoveLeveledSpells(AbVampireResistanceSpells)
-    VampireRemoveLeveledSpells(AbVampireStageSpells)
-    VampireRemoveLeveledSpells(AbVampireWeaknessSpells)
-    VampireRemoveLeveledSpells(VampireSunDamageSpells)
-  Else
-    PlayerRef.AddSpell(AbVampireChillTouch, abVerbose = False)
-    PlayerRef.AddSpell(VampireBloodMemory, abVerbose = False)
-    PlayerRef.AddSpell(VampireChampionOfTheNight, abVerbose = False)
-    PlayerRef.AddSpell(VampireNightstalker, abVerbose = False)
 
     If Property_VampireStatus == 1
       PlayerRef.AddSpell(VampireInvisibilityPC, abVerbose = False)
@@ -309,8 +273,12 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
       VampireAddLeveledSpell(VampireRaiseThrallSpells, Property_VampireRank)
     EndIf
 
-    VampireAddLeveledSpell(VampireCharmSpells, Property_VampireRank)
+    PlayerRef.AddSpell(AbVampireChillTouch, abVerbose = False)
+    PlayerRef.AddSpell(VampireBloodMemory, abVerbose = False)
+    PlayerRef.AddSpell(VampireChampionOfTheNight, abVerbose = False)
+    PlayerRef.AddSpell(VampireNightstalker, abVerbose = False)
     VampireAddLeveledSpell(AbVampireRankSpells, Property_VampireRank)
+    VampireAddLeveledSpell(VampireCharmSpells, Property_VampireRank)
     VampireAddLeveledSpell(VampireClawsSpells, Property_VampireRank)
     VampireAddLeveledSpell(VampireDrainSpells, Property_VampireRank)
     VampireAddLeveledSpell(AbVampireResistanceSpells, 5 - Property_VampireStatus)
@@ -318,6 +286,10 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
     VampireAddLeveledSpell(AbVampireWeaknessSpells, Property_VampireStatus)
     VampireAddLeveledSpell(VampireSunDamageSpells, Property_VampireStatus)
   EndIf
+
+  PlayerRef.RemoveSpell(AbVampireSkills)
+  PlayerRef.RemoveSpell(AbVampireSkills02)
+  VampireRemoveLeveledSpells(VampireStrengthSpells)
 
   If Property_VampireStatus < 4
     VampireSetHated(False)
@@ -382,7 +354,28 @@ Function VampireCure(Actor Target)
   VampireStopFeedTimer()
   VampireDisablePlayerControls()
   VampireUpdateRank(Reset = True)
-  VampireProgression(PlayerRef, 0)
+  PlayerIsVampire.SetValue(0)
+  VampireFeedReady.SetValue(0)
+  VampireSetHated(False)
+  PlayerRef.RemoveSpell(DLC1VampireChange)
+  PlayerRef.RemoveSpell(AbVampireChillTouch)
+  PlayerRef.RemoveSpell(AbVampireSkills)
+  PlayerRef.RemoveSpell(AbVampireSkills02)
+  PlayerRef.RemoveSpell(VampireBloodMemory)
+  PlayerRef.RemoveSpell(VampireChampionOfTheNight)
+  PlayerRef.RemoveSpell(VampireNightstalker)
+  PlayerRef.RemoveSpell(VampireInvisibilityPC)
+  PlayerRef.RemoveSpell(VampireMesmerizingGaze)
+  VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
+  VampireRemoveLeveledSpells(VampireCharmSpells)
+  VampireRemoveLeveledSpells(AbVampireRankSpells)
+  VampireRemoveLeveledSpells(VampireClawsSpells)
+  VampireRemoveLeveledSpells(VampireDrainSpells)
+  VampireRemoveLeveledSpells(VampireStrengthSpells)
+  VampireRemoveLeveledSpells(AbVampireResistanceSpells)
+  VampireRemoveLeveledSpells(AbVampireStageSpells)
+  VampireRemoveLeveledSpells(AbVampireWeaknessSpells)
+  VampireRemoveLeveledSpells(VampireSunDamageSpells)
   PlayerRef.DispelSpell(VampireHuntersSight)
   PlayerRef.SetRace(PlayerVampireRaceController.GetCureRace())
   PlayerRef.RemoveSpell(VampireHuntersSight)
@@ -397,7 +390,7 @@ Bool Function VampireSafeToUpdate()
 
   Return Game.IsMovementControlsEnabled() \
       && Game.IsFightingControlsEnabled() \
-      && PlayerRef.GetRace() != DLC1VampireBeastRace \
+      && Game.IsFastTravelControlsEnabled() \
       && !PlayerRef.IsInCombat() \
       && !Feeding \
       && !Updating \

@@ -23,8 +23,10 @@ Event OnSpellCast(Form akSpell)
     DLC1BatsCount.Value += 1
 
     If DLC1BatsCount.Value >= BatsMaxUses
+      UnregisterForUpdateGameTime()
       DLC1BatsWaitMessage.Show()
       PlayerRef.RemoveSpell(DLC1VampireBats)
+      RegisterForSingleUpdateGameTime(BatsCoolDown)
     EndIf
   EndIf
 
@@ -33,8 +35,6 @@ EndEvent
 Event OnUpdateGameTime()
 
   Actor PlayerRef = GetReference() as Actor
-
-  UnregisterForUpdateGameTime()
 
   If DLC1BatsCount.Value >= BatsMaxUses
     DLC1BatsReadyMessage.Show()
