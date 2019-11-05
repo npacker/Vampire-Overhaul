@@ -4,7 +4,7 @@ PlayerVampireQuestScript Property PlayerVampireQuest Auto
 
 Event OnEffectStart(Actor Target, Actor Caster)
 
-  If Caster == Game.GetPlayer()
+  If Target == Game.GetPlayer()
     PlayerVampireQuest.VampireFeed()
   EndIf
 

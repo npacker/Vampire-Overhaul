@@ -1,6 +1,6 @@
 Scriptname SoundMarkerRefScript extends ReferenceAlias
 
-Event OnCellDetach()
+Event OnUnload()
 
   GetReference().Disable()
   GetReference().Delete()

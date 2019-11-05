@@ -309,7 +309,11 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
     DCL1VampireLevitateStateGlobal.SetValue(1)
 
     ; Update the currently equipped left hand spell.
-    CurrentEquippedLeftSpell = PlayerRef.GetEquippedSpell(0)
+    If PlayerRef.IsWeaponDrawn()
+      Debug.TraceAndBox(CurrentEquippedLeftSpell)
+      CurrentEquippedLeftSpell = PlayerRef.GetEquippedSpell(0)
+      Debug.TraceAndBox(CurrentEquippedLeftSpell)
+    EndIf
 
     ; There may not be a currently equipped spell when on the ground. Store it
     ; so that it can be re-equipped next time the player levitates.
@@ -625,7 +629,12 @@ Function ActuallyShiftBackIfNecessary()
   PlayerRef.RemovePerk(DLC1FallDamageReduction)
 
   ; Save CurrentEquippedLeftSpell to re-equip when returning to Vampire Lord form.
-  CurrentEquippedLeftSpell = PlayerRef.GetEquippedSpell(0)
+  If PlayerRef.IsWeaponDrawn()
+    Debug.TraceAndBox(CurrentEquippedLeftSpell)
+    CurrentEquippedLeftSpell = PlayerRef.GetEquippedSpell(0)
+    Debug.TraceAndBox(CurrentEquippedLeftSpell)
+  EndIf
+
   (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell = CurrentEquippedLeftSpell
 
   ; Save LastEquippedPower to re-equip when returning to Vampire Lord form.
@@ -923,6 +932,15 @@ Function UnregisterForEvents()
   DCL1VampireLevitateStateGlobal.SetValue(1)
 
 EndFunction
+
+Function HandleEquippedspell(Spell EquippedSpell)
+{
+  Called from DLC1PlayerVampireScript hwen the player equips a spell.
+}
+
+  CurrentEquippedLeftSpell = EquippedSpell
+
+Endfunction
 
 Function HandleEquippedPower(Spell EquippedPower)
 {

@@ -10,6 +10,7 @@ GlobalVariable Property DLC1BatsCount Auto
 GlobalVariable Property DLC1MistformCount Auto
 GlobalVariable Property DLC1ReflexesCount Auto
 
+Spell Property CurrentEquippedSpell Auto
 Spell Property CurrentEquippedPower Auto
 
 Event OnPlayerLoadGame()
@@ -38,7 +39,12 @@ Event OnObjectEquipped(Form akBaseObject, ObjectReference akReference)
 
   Actor PlayerRef = GetReference() as Actor
 
+  CurrentEquippedSpell = PlayerRef.GetEquippedSpell(0)
   CurrentEquippedPower = PlayerRef.GetEquippedSpell(2)
+
+  If CurrentEquippedSpell && (akBaseObject == CurrentEquippedSpell)
+    (GetOwningQuest() as DLC1PlayerVampireChangeScript).HandleEquippedSpell(CurrentEquippedSpell)
+  EndIf
 
   If CurrentEquippedPower && (akBaseObject == CurrentEquippedPower)
     (GetOwningQuest() as DLC1PlayerVampireChangeScript).HandleEquippedPower(CurrentEquippedPower)

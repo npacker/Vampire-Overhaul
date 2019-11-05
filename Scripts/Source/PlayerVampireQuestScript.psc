@@ -133,7 +133,6 @@ Spell Property VampireHuntersSight Auto
 Spell Property VampireInvisibilityPC Auto
 Spell Property VampireMesmerizingGaze Auto
 Spell Property VampireNightstalker Auto
-Spell Property VampireSunDamageBurn Auto
 
 Spell[] Property AbVampireRankSpells Auto
 Spell[] Property AbVampireResistanceSpells Auto
@@ -513,6 +512,8 @@ Function VampirePlayChange()
 
   If !SoundMarkerRef.GetReference()
     SoundMarkerRef.ForceRefTo(PlayerRef.PlaceAtMe(XMarker))
+  Else
+    SoundMarkerRef.GetReference().MoveTo(PlayerRef)
   EndIf
 
   VampireTransformIncreaseISMD.ApplyCrossFade(2.0)
@@ -520,13 +521,6 @@ Function VampirePlayChange()
   Utility.Wait(2.0)
   ImageSpaceModifier.RemoveCrossFade()
   VampireChangeFX.Stop(PlayerRef)
-
-EndFunction
-
-Function VampireAddCharmSpell()
-
-  VampireRemoveLeveledSpells(VampireCharmSpells)
-  VampireAddLeveledSpell(VampireCharmSpells, Property_VampireRank)
 
 EndFunction
 
