@@ -324,16 +324,15 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
   If EventName == Levitate
     DCL1VampireLevitateStateGlobal.SetValue(2)
 
-    ; Always equip a Vampire Drain in the right hand.
-    PlayerRef.EquipSpell(LeveledDrainSpell, 1)
-
     ; Re-equip whatever spell was previously eqiupped in the left hand. If no
     ; spell was equipped, default the the Raise Dead spell.
-    If (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell == None
-      (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell = LeveledRaiseDeadSpell
+    If CurrentEquippedLeftSpell == None
+      If (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell == None
+        CurrentEquippedLeftSpell = LeveledRaiseDeadSpell
+      Else
+        CurrentEquippedLeftSpell = (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell
+      EndIf
     EndIf
-
-    CurrentEquippedLeftSpell = (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell
 
     ; Check to see if we need to add any perk-related spells.
     ; We need to do this here because the player may have added new perks since
