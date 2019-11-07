@@ -273,27 +273,12 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
 
   ; COMBAT BITE
   If EventName == BiteStart
-    DLC1VampireBloodPoints.Value += 1
-
-    If DLC1VampireTotalPerksEarned.Value < DLC1VampireMaxPerks.Value
-      DLC1BloodPointsMsg.Show()
-
-      If DLC1VampireBloodPoints.Value >= DLC1VampireNextPerk.Value
-        DLC1VampireBloodPoints.Value -= DLC1VampireNextPerk.Value
-        DLC1VampirePerkPoints.Value += 1
-        DLC1VampireTotalPerksEarned.Value += 1
-        DLC1VampireNextPerk.Value = DLC1VampireNextPerk.Value + 2
-        DLC1VampirePerkEarned.Show()
-      EndIf
-
-      PlayerRef.SetActorValue("VampirePerks", DLC1VampireBloodPoints.Value / DLC1VampireNextPerk.Value * 100)
-    EndIf
+    AdvanceBloodPoints()
 
     If PlayerRef.HasPerk(DLC1VampireBite)
       PlayerRef.RestoreActorValue("Health", DLC1BiteHealthRecover)
     EndIf
 
-    PlayerRef.SetActorValue("VampirePerks", DLC1VampireBloodPoints.Value / DLC1VampireNextPerk.Value * 100)
     Game.IncrementStat("Necks Bitten")
   EndIf
   ; END COMBAT BITE
@@ -309,15 +294,13 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
     DCL1VampireLevitateStateGlobal.SetValue(1)
 
     ; Update the currently equipped left hand spell.
-    If PlayerRef.IsWeaponDrawn()
-      Debug.TraceAndBox(CurrentEquippedLeftSpell)
-      CurrentEquippedLeftSpell = PlayerRef.GetEquippedSpell(0)
-      Debug.TraceAndBox(CurrentEquippedLeftSpell)
-    EndIf
+    Spell PlayerEquippedSpellLeft = PlayerRef.GetEquippedSpell(0)
 
     ; There may not be a currently equipped spell when on the ground. Store it
     ; so that it can be re-equipped next time the player levitates.
-    If CurrentEquippedLeftSpell
+    If PlayerEquippedSpellLeft
+      CurrentEquippedLeftSpell = PlayerEquippedSpellLeft
+
       PlayerRef.UnequipSpell(CurrentEquippedLeftSpell, 0)
     EndIf
 
@@ -560,7 +543,7 @@ Function Revert()
   Called from DLC1RevertEffectScript in OnEffectStart().
 }
 
-  If Game.QueryStat("NumVampirePerks") >= DLC1VampireMaxPerks.Value
+  If Game.QueryStat("NumVampirePerks") >= DLC1VampireMaxPerks.GetValue()
     Game.AddAchievement(58)
   EndIf
 
@@ -689,19 +672,19 @@ Function ActuallyShiftBackIfNecessary()
   PlayerVampireQuest.VampireProgression(PlayerRef, PlayerVampireQuest.VampireStatus, Verbose = False)
 
   ; Re-equip vampire items that were equipped before transformation.
-  If DLC1nVampireNecklaceBats.Value == 1
+  If DLC1nVampireNecklaceBats.GetValue() == 1
     PlayerRef.EquipItem(DLC1nVampireNightPowerNecklaceBats, abPreventRemoval = False, abSilent = True)
   EndIf
 
-  If DLC1nVampireNecklaceGargoyle.Value == 1
+  If DLC1nVampireNecklaceGargoyle.GetValue() == 1
     PlayerRef.EquipItem(DLC1nVampireNightPOwerNecklaceGargoyle, abPreventRemoval = False, abSilent = True)
   EndIf
 
-  If DLC1nVampireRingBeast.Value == 1
+  If DLC1nVampireRingBeast.GetValue() == 1
     PlayerRef.EquipItem(DLC1nVampireBloodMagicRingBeast, abPreventRemoval = False, abSilent = True)
   EndIf
 
-  If DLC1nVampireRingErudite.Value == 1
+  If DLC1nVampireRingErudite.GetValue() == 1
     PlayerRef.EquipItem(DLC1nVampireBloodMagicRingErudite, abPreventRemoval = False, abSilent = True)
   EndIf
 
@@ -904,6 +887,26 @@ Function VampireLordSetHate(Bool Hate = True)
   EndWhile
 
   PlayerRef.SetAttackActorOnSight(Hate)
+
+EndFunction
+
+Function AdvanceBloodPoints()
+
+  DLC1VampireBloodPoints.SetValue(DLC1VampireBloodPoints.GetValue() + 1)
+
+  If DLC1VampireTotalPerksEarned.GetValue() < DLC1VampireMaxPerks.GetValue()
+    DLC1BloodPointsMsg.Show()
+
+    If DLC1VampireBloodPoints.GetValue() >= DLC1VampireNextPerk.GetValue()
+      DLC1VampireBloodPoints.SetValue(DLC1VampireBloodPoints.GetValue() - DLC1VampireNextPerk.GetValue())
+      DLC1VampirePerkPoints.SetValue(DLC1VampirePerkPoints.GetValue() + 1)
+      DLC1VampireTotalPerksEarned.SetValue(DLC1VampireTotalPerksEarned.GetValue() + 1)
+      DLC1VampireNextPerk.SetValue(DLC1VampireNextPerk.GetValue() + 2)
+      DLC1VampirePerkEarned.Show()
+    EndIf
+  EndIf
+
+  PlayerRef.SetActorValue("VampirePerks", DLC1VampireBloodPoints.GetValue() / DLC1VampireNextPerk.GetValue() * 100.0)
 
 EndFunction
 

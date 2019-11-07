@@ -16,13 +16,13 @@ Event OnSpellCast(Form akSpell)
   Actor PlayerRef = GetReference() as Actor
 
   If akSpell == DLC1VampireBats
-    If DLC1BatsCount.Value == 0
+    If DLC1BatsCount.GetValue() == 0
       RegisterForSingleUpdateGameTime(BatsCoolDown)
     EndIf
 
-    DLC1BatsCount.Value += 1
+    DLC1BatsCount.SetValue(DLC1BatsCount.GetValue() + 1)
 
-    If DLC1BatsCount.Value >= BatsMaxUses
+    If DLC1BatsCount.GetValue() >= BatsMaxUses
       UnregisterForUpdateGameTime()
       DLC1BatsWaitMessage.Show()
       PlayerRef.RemoveSpell(DLC1VampireBats)
@@ -36,7 +36,7 @@ Event OnUpdateGameTime()
 
   Actor PlayerRef = GetReference() as Actor
 
-  If DLC1BatsCount.Value >= BatsMaxUses
+  If DLC1BatsCount.GetValue() >= BatsMaxUses
     DLC1BatsReadyMessage.Show()
     PlayerRef.AddSpell(DLC1VampireBats, abVerbose = False)
 
@@ -45,6 +45,6 @@ Event OnUpdateGameTime()
     EndIf
   EndIf
 
-  DLC1BatsCount.Value = 0
+  DLC1BatsCount.SetValue(0)
 
 EndEvent

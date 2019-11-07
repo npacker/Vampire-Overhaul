@@ -175,7 +175,7 @@ Bool Transforming = False
 
 Event OnUpdateGameTime()
 
-  If (GameDaysPassed.Value - LastUpdateTime) >= 1.0
+  If (GameDaysPassed.GetValue() - LastUpdateTime) >= 1.0
     VampireStopFeedTimer()
     RegisterForSingleUpdate(5.0)
   EndIf
@@ -185,7 +185,7 @@ EndEvent
 Event OnUpdate()
 
   If VampireSafeToUpdate()
-    Int NewStage = Property_VampireStatus + Math.Floor(GameDaysPassed.Value - LastUpdateTime)
+    Int NewStage = Property_VampireStatus + Math.Floor(GameDaysPassed.GetValue() - LastUpdateTime)
 
     If NewStage > 4
       NewStage = 4
@@ -220,7 +220,7 @@ Function VampireFeed()
     Bool RankUpdated = False
 
     Property_Feedings += 1
-    Property_LastFeedTime = GameDaysPassed.Value
+    Property_LastFeedTime = GameDaysPassed.GetValue()
     RankUpdated = VampireUpdateRank()
 
     VampireFeedMessage.Show()
@@ -255,7 +255,7 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
 
     If Property_VampireStatus != NewStage
       Property_VampireStatus = NewStage
-      LastUpdateTime = GameDaysPassed.Value
+      LastUpdateTime = GameDaysPassed.GetValue()
     EndIf
 
     If Property_VampireStatus == 1

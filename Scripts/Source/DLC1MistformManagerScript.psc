@@ -16,13 +16,13 @@ Event OnSpellCast(Form akSpellCast)
   Actor PlayerRef = GetReference() as Actor
 
   If akSpellCast == DLC1VampireMistform
-    If DLC1MistformCount.Value == 0
+    If DLC1MistformCount.GetValue() == 0
       RegisterForSingleUpdateGameTime(MistformCoolDown)
     endIf
 
-    DLC1MistformCount.Value += 1
+    DLC1MistformCount.SetValue(DLC1MistformCount.GetValue() + 1)
 
-    If DLC1MistformCount.Value >= MistformMaxUses
+    If DLC1MistformCount.GetValue() >= MistformMaxUses
       UnregisterForUpdateGameTime()
       DLC1MistformWaitMessage.Show()
       PlayerRef.RemoveSpell(DLC1VampireMistform)
@@ -36,7 +36,7 @@ Event OnUpdateGameTime()
 
   Actor PlayerRef = GetReference() as Actor
 
-  If DLC1MistformCount.Value >= MistformMaxUses
+  If DLC1MistformCount.GetValue() >= MistformMaxUses
     DLC1MistformReadyMessage.Show()
     PlayerRef.AddSpell(DLC1VampireMistform, abVerbose = False)
 
@@ -45,6 +45,6 @@ Event OnUpdateGameTime()
     EndIf
   EndIf
 
-  DLC1MistformCount.Value = 0
+  DLC1MistformCount.SetValue(0)
 
 EndEvent

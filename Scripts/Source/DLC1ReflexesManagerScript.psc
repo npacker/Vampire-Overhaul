@@ -16,13 +16,13 @@ Event OnSpellCast(Form akSpellCast)
   Actor PlayerRef = GetReference() as Actor
 
   If akSpellCast == DLC1SupernaturalReflexes
-    If DLC1ReflexesCount.Value == 0
+    If DLC1ReflexesCount.GetValue() == 0
       RegisterForSingleUpdateGameTime(ReflexesCoolDown)
     EndIf
 
-    DLC1ReflexesCount.Value += 1
+    DLC1ReflexesCount.SetValue(DLC1ReflexesCount.GetValue() + 1)
 
-    If DLC1ReflexesCount.Value >= ReflexesMaxUses
+    If DLC1ReflexesCount.GetValue() >= ReflexesMaxUses
       UnregisterForUpdateGameTime()
       DLC1ReflexesWaitMessage.Show()
       PlayerRef.RemoveSpell(DLC1SupernaturalReflexes)
@@ -36,7 +36,7 @@ Event OnUpdateGameTime()
 
   Actor PlayerRef = GetReference() as Actor
 
-  If  DLC1ReflexesCount.Value >= ReflexesMaxUses
+  If  DLC1ReflexesCount.GetValue() >= ReflexesMaxUses
     DLC1ReflexesReadyMessage.Show()
     PlayerRef.AddSpell(DLC1SupernaturalReflexes, abVerbose = False)
 
@@ -45,6 +45,6 @@ Event OnUpdateGameTime()
     EndIf
   EndIf
 
-  DLC1ReflexesCount.Value = 0
+  DLC1ReflexesCount.SetValue(0)
 
 EndEvent

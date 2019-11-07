@@ -23,9 +23,9 @@ Event OnRaceSwitchComplete()
 
   Actor PlayerRef = GetReference() as Actor
 
-  DLC1BatsCount.Value = 0
-  DLC1MistformCount.Value = 0
-  DLC1ReflexesCount.Value = 0
+  DLC1BatsCount.SetValue(0)
+  DLC1MistformCount.SetValue(0)
+  DLC1ReflexesCount.SetValue(0)
 
   If PlayerRef.GetRace() == DLC1VampireBeastRace
     (GetOwningQuest() as DLC1PlayerVampireChangeScript).StartTracking()
