@@ -293,13 +293,10 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
   If EventName == Ground
     DCL1VampireLevitateStateGlobal.SetValue(1)
 
-    ; Update the currently equipped left hand spell.
-    Spell PlayerEquippedSpellLeft = PlayerRef.GetEquippedSpell(0)
-
     ; There may not be a currently equipped spell when on the ground. Store it
     ; so that it can be re-equipped next time the player levitates.
-    If PlayerEquippedSpellLeft
-      CurrentEquippedLeftSpell = PlayerEquippedSpellLeft
+    If PlayerRef.GetEquippedItemType(0) == 9
+      CurrentEquippedLeftSpell = PlayerRef.GetEquippedSpell(0)
 
       PlayerRef.UnequipSpell(CurrentEquippedLeftSpell, 0)
     EndIf
@@ -412,10 +409,26 @@ Function InitialShift()
   ; Check if the player is wearing any Night Power/Blood Magic artifacts.
   If PlayerRef.isEquipped(DLC1nVampireBloodMagicRingBeast)
     DLC1nVampireRingBeast.SetValue(1)
+
+    Float CurrentHealth = PlayerRef.GetActorValue("health")
+
+    If CurrentHealth <= 100
+      PlayerRef.RestoreActorValue("health", 100 - CurrentHealth)
+    EndIf
+
+    PlayerRef.UnequipItem(DLC1nVampireBloodMagicRingBeast, False, True)
   EndIf
 
   If PlayerRef.isEquipped(DLC1nVampireBloodMagicRingErudite)
     DLC1nVampireRingErudite.SetValue(1)
+
+    Float CurrentMagicka = PlayerRef.GetActorValue("magicka")
+
+    If CurrentMagicka <= 100
+      PlayerRef.RestoreActorValue("magicka", 100 - CurrentMagicka)
+    EndIf
+
+    PlayerRef.UnequipItem(DLC1nVampireBloodMagicRingErudite, False, True)
   EndIf
 
   If PlayerRef.isEquipped(DLC1nVampireNightPowerNecklaceBats)
@@ -611,12 +624,6 @@ Function ActuallyShiftBackIfNecessary()
   PlayerRef.RemovePerk(DLC1FallDamageReduction)
 
   ; Save CurrentEquippedLeftSpell to re-equip when returning to Vampire Lord form.
-  If PlayerRef.IsWeaponDrawn()
-    Debug.TraceAndBox(CurrentEquippedLeftSpell)
-    CurrentEquippedLeftSpell = PlayerRef.GetEquippedSpell(0)
-    Debug.TraceAndBox(CurrentEquippedLeftSpell)
-  EndIf
-
   (DialogueGenericVampire as VampireQuestScript).LastLeftHandSpell = CurrentEquippedLeftSpell
 
   ; Save LastEquippedPower to re-equip when returning to Vampire Lord form.
