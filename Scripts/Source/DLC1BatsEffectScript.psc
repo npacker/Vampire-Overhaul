@@ -54,7 +54,7 @@ Bool BatsIdleSuccess = False
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 
   Caster = akCaster
-  LevitationStateStartValue = DLC1VampireLevitateStateGlobal.Value
+  LevitationStateStartValue = DLC1VampireLevitateStateGlobal.GetValue()
   DLC1PlayerVampireQuest.CurrentEquippedLeftSpell = Caster.GetEquippedSpell(0)
 
   RegisterForAnimationEvent(Caster, BatSprintOff)
@@ -64,12 +64,12 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
   If BatsIdleSuccess
     DLC1VampireBatsImod.Apply()
 
-    If DLC1nVampireNecklaceBats.Value == 1
+    If DLC1nVampireNecklaceBats.GetValue() == 1
       DLC1nVampireBatsAmuletSpell.Cast(Caster, Caster)
     EndIf
 
     If LevitationStateStartValue == 2.0
-      DLC1VampireLevitateStateGlobal.Value = LevitationStateFlag
+      DLC1VampireLevitateStateGlobal.SetValue(LevitationStateFlag)
     EndIf
 
     Caster.SetSubGraphFloatVariable("fdampRate", 0.2)
@@ -102,12 +102,12 @@ Event OnEffectFinish(Actor akTarget, Actor akCaster)
 
     Utility.Wait(ReformDelay)
 
-    If DLC1nVampireNecklaceBats.Value == 1
+    If DLC1nVampireNecklaceBats.GetValue() == 1
       Caster.DispelSpell(DLC1nVampireBatsAmuletSpell)
     EndIf
 
-    If DLC1VampireLevitateStateGlobal.Value == LevitationStateFlag
-      DLC1VampireLevitateStateGlobal.Value = LevitationStateStartValue
+    If DLC1VampireLevitateStateGlobal.GetValue() == LevitationStateFlag
+      DLC1VampireLevitateStateGlobal.SetValue(LevitationStateStartValue)
     EndIf
 
     Caster.SetSubGraphFloatVariable("fdampRate", 0.02)

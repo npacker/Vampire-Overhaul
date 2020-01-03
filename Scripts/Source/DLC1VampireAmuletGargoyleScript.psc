@@ -14,7 +14,7 @@ Bool Done = False
 
 Event OnLoad()
 
-  If DLC1nVampireNecklaceGargoyle.Value == 1 && !Done
+  If DLC1nVampireNecklaceGargoyle.GetValue() == 1 && !Done
     Done = True
     CastTarget = Self.PlaceAtMe(XMarker)
 

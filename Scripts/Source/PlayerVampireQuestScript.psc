@@ -6,9 +6,7 @@ ScriptName PlayerVampireQuestScript extends Quest Conditional
 ;
 ;-------------------------------------------------------------------------------
 
-Int Property_VampireStatus Conditional
-
-Int Property VampireStatus
+Int Property VampireStatus Auto Conditional
 {
    0 = Not a Vampire
    1 = Vampire Stage 1
@@ -17,15 +15,7 @@ Int Property VampireStatus
    4 = Vampire Stage 4
 }
 
-  Int Function Get()
-    Return Property_VampireStatus
-  EndFunction
-
-EndProperty
-
-Int Property_VampireRank Conditional
-
-Int Property VampireRank
+Int Property VampireRank Auto Conditional
 {
    0 = Not a vampire
    1 = Vampire Fledgling
@@ -36,31 +26,11 @@ Int Property VampireRank
    6 = Nightmaster Vampire
 }
 
-  Int Function Get()
-    Return Property_VampireRank
-  EndFunction
+Int Property Feedings Auto Conditional
+{ Number of times player has fed as a Vampire. }
 
-EndProperty
-
-Int Property_Feedings Conditional
-
-Int Property Feedings
-
-  Int Function Get()
-    Return Property_Feedings
-  EndFunction
-
-EndProperty
-
-Float Property_LastFeedTime
-
-Float Property LastFeedTime
-
-  Float Function Get()
-    Return Property_LastFeedTime
-  Endfunction
-
-EndProperty
+Float Property LastFeedTime Auto
+{ Last time the player fed as a Vampire. }
 
 GlobalVariable Property PlayerIsVampire Auto
 { Set to 1 if the player is a vampire, 0 otherwiese. }
@@ -185,13 +155,13 @@ EndEvent
 Event OnUpdate()
 
   If VampireSafeToUpdate()
-    Int NewStage = Property_VampireStatus + Math.Floor(GameDaysPassed.GetValue() - LastUpdateTime)
+    Int NewStage = VampireStatus + Math.Floor(GameDaysPassed.GetValue() - LastUpdateTime)
 
     If NewStage > 4
       NewStage = 4
     EndIf
 
-    VampireProgression(PlayerRef, NewStage, NewStage != Property_VampireStatus)
+    VampireProgression(PlayerRef, NewStage, NewStage != VampireStatus)
     VampireStartFeedTimer()
   Else
     RegisterForSingleUpdate(5.0)
@@ -216,11 +186,11 @@ Function VampireFeed()
   VampireStopFeedTimer()
   VampireImageSpaceModifier()
 
-  If Property_VampireStatus > 1
+  If VampireStatus > 1
     Bool RankUpdated = False
 
-    Property_Feedings += 1
-    Property_LastFeedTime = GameDaysPassed.GetValue()
+    Feedings += 1
+    LastFeedTime = GameDaysPassed.GetValue()
     RankUpdated = VampireUpdateRank()
 
     VampireFeedMessage.Show()
@@ -253,51 +223,51 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
     PlayerIsVampire.SetValue(1)
     VampireFeedReady.SetValue(NewStage - 1)
 
-    If Property_VampireStatus != NewStage
-      Property_VampireStatus = NewStage
+    If VampireStatus != NewStage
+      VampireStatus = NewStage
       LastUpdateTime = GameDaysPassed.GetValue()
     EndIf
 
-    If Property_VampireStatus == 1
+    If VampireStatus == 1
       PlayerRef.AddSpell(VampireInvisibilityPC, abVerbose = False)
     Else
       PlayerRef.RemoveSpell(VampireInvisibilityPC)
     EndIf
 
-    If Property_VampireStatus == 4
+    If VampireStatus == 4
       PlayerRef.RemoveSpell(VampireMesmerizingGaze)
       VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
     Else
       PlayerRef.AddSpell(VampireMesmerizingGaze, abVerbose = False)
-      VampireAddLeveledSpell(VampireRaiseThrallSpells, Property_VampireRank)
+      VampireAddLeveledSpell(VampireRaiseThrallSpells, VampireRank)
     EndIf
 
     PlayerRef.AddSpell(AbVampireChillTouch, abVerbose = False)
     PlayerRef.AddSpell(VampireBloodMemory, abVerbose = False)
     PlayerRef.AddSpell(VampireChampionOfTheNight, abVerbose = False)
     PlayerRef.AddSpell(VampireNightstalker, abVerbose = False)
-    VampireAddLeveledSpell(AbVampireRankSpells, Property_VampireRank)
-    VampireAddLeveledSpell(VampireCharmSpells, Property_VampireRank)
-    VampireAddLeveledSpell(VampireClawsSpells, Property_VampireRank)
-    VampireAddLeveledSpell(VampireDrainSpells, Property_VampireRank)
-    VampireAddLeveledSpell(AbVampireResistanceSpells, 5 - Property_VampireStatus)
-    VampireAddLeveledSpell(AbVampireStageSpells, Property_VampireStatus)
-    VampireAddLeveledSpell(AbVampireWeaknessSpells, Property_VampireStatus)
-    VampireAddLeveledSpell(VampireSunDamageSpells, Property_VampireStatus)
+    VampireAddLeveledSpell(AbVampireRankSpells, VampireRank)
+    VampireAddLeveledSpell(VampireCharmSpells, VampireRank)
+    VampireAddLeveledSpell(VampireClawsSpells, VampireRank)
+    VampireAddLeveledSpell(VampireDrainSpells, VampireRank)
+    VampireAddLeveledSpell(AbVampireResistanceSpells, 5 - VampireStatus)
+    VampireAddLeveledSpell(AbVampireStageSpells, VampireStatus)
+    VampireAddLeveledSpell(AbVampireWeaknessSpells, VampireStatus)
+    VampireAddLeveledSpell(VampireSunDamageSpells, VampireStatus)
   EndIf
 
   PlayerRef.RemoveSpell(AbVampireSkills)
   PlayerRef.RemoveSpell(AbVampireSkills02)
   VampireRemoveLeveledSpells(VampireStrengthSpells)
 
-  If Property_VampireStatus < 4
+  If VampireStatus < 4
     VampireSetHated(False)
 
-    If Verbose && Property_VampireStatus > 1
+    If Verbose && VampireStatus > 1
       VampireStageProgressionMessage.Show()
       VampireImageSpaceModifier()
     EndIf
-  ElseIf Property_VampireStatus == 4
+  ElseIf VampireStatus == 4
     VampireSetHated(True)
 
     If Verbose
@@ -400,33 +370,33 @@ EndFunction
 Bool Function VampireUpdateRank(Bool Reset = False)
 
   Int PlayerLevel = PlayerRef.GetLevel()
-  Int OldVampireRank = Property_VampireRank
+  Int OldVampireRank = VampireRank
 
   If Reset
-    Property_VampireRank = 0
+    VampireRank = 0
   Else
-    If Property_Feedings < 3
-      Property_VampireRank = 1
-    ElseIf Property_Feedings < 9 && PlayerLevel > 10
-      Property_VampireRank = 2
-    ElseIf Property_Feedings < 25 && PlayerLevel > 20
-      Property_VampireRank = 3
-    ElseIf Property_Feedings < 75 && PlayerLevel > 30
-      Property_VampireRank = 4
-    ElseIf Property_Feedings < 200 && PlayerLevel > 40
-      Property_VampireRank = 5
+    If Feedings < 3
+      VampireRank = 1
+    ElseIf Feedings < 9 && PlayerLevel > 10
+      VampireRank = 2
+    ElseIf Feedings < 25 && PlayerLevel > 20
+      VampireRank = 3
+    ElseIf Feedings < 75 && PlayerLevel > 30
+      VampireRank = 4
+    ElseIf Feedings < 200 && PlayerLevel > 40
+      VampireRank = 5
     ElseIf PlayerLevel > 50
-      Property_VampireRank = 6
+      VampireRank = 6
     EndIf
   EndIf
 
-  Return OldVampireRank != Property_VampireRank
+  Return OldVampireRank != VampireRank
 
 EndFunction
 
 Function VampireShowRankMessage()
 
-  VampireRankMessages[Property_VampireRank].Show()
+  VampireRankMessages[VampireRank].Show()
 
 EndFunction
 
