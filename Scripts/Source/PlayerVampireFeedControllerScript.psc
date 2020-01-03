@@ -16,61 +16,13 @@ Int Property FeedHealthRestored Auto
 
 Int Property BiteHealthRestored Auto
 
-Float Property UpdateTime Auto
-
 ;-------------------------------------------------------------------------------
 ;
 ; VARIABLES
 ;
 ;-------------------------------------------------------------------------------
 
-Actor TargetRef
-
-;-------------------------------------------------------------------------------
-;
-; STATES
-;
-;-------------------------------------------------------------------------------
-
-State CombatFeed
-
-  Event OnUpdate()
-    Game.SetPlayerAIDriven(False)
-    TargetRef.Kill(PlayerRef)
-    TargetRef.EndDeferredKill()
-    PlayerRef.RestoreActorValue("health", FeedHealthRestored)
-    Game.IncrementStat("Necks Bitten")
-    GoToState("")
-  EndEvent
-
-EndState
-
-State CombatBite
-
-  Event OnUpdate()
-    Game.SetPlayerAIDriven(False)
-    TargetRef.Kill(PlayerRef)
-    TargetRef.EndDeferredKill()
-    PlayerRef.RestoreActorValue("health", BiteHealthRestored)
-    Game.IncrementStat("Necks Bitten")
-    GoToState("")
-  EndEvent
-
-EndState
-
-;-------------------------------------------------------------------------------
-;
-; EVENTS
-;
-;-------------------------------------------------------------------------------
-
-Event OnUpdate()
-
-  Game.SetPlayerAIDriven(False)
-  PlayerRef.RestoreActorValue("health", FeedHealthRestored)
-  Game.IncrementStat("Necks Bitten")
-
-EndEvent
+Float FeedDuration = 1.0
 
 ;-------------------------------------------------------------------------------
 ;
@@ -80,50 +32,58 @@ EndEvent
 
 Function HandleFeed(Actor Target)
 
-  TargetRef = Target
-
-  DLC1VampireTurn.PlayerBitesMe(TargetRef)
-  PlayerRef.StartVampireFeed(TargetRef)
+  DLC1VampireTurn.PlayerBitesMe(Target)
+  PlayerRef.StartVampireFeed(Target)
+  Utility.Wait(FeedDuration)
+  Game.SetPlayerAIDriven(False)
+  Game.EnablePlayerControls()
   PlayerVampireQuest.VampireFeed()
-  RegisterForSingleUpdate(UpdateTime)
+  Game.IncrementStat("Necks Bitten")
 
 EndFunction
 
 Function HandleBite(Actor Target)
 
-  TargetRef = Target
-
-  DLC1VampireTurn.PlayerBitesMe(TargetRef)
-  PlayerRef.StartVampireFeed(TargetRef)
-  RegisterForSingleUpdate(UpdateTime)
+  DLC1VampireTurn.PlayerBitesMe(Target)
+  PlayerRef.StartVampireFeed(Target)
+  Utility.Wait(FeedDuration)
+  Game.SetPlayerAIDriven(False)
+  Game.EnablePlayerControls()
+  Game.IncrementStat("Necks Bitten")
 
 EndFunction
 
 Function HandleCombatFeed(Actor Target)
 
-  TargetRef = Target
-
-  TargetRef.StartDeferredKill()
-  TargetRef.SetRestrained()
-  PlayerRef.MoveTo(TargetRef, abMatchRotation = False)
-  PlayerRef.StartVampireFeed(TargetRef)
-  TargetRef.SendAssaultAlarm()
-  GoToState("CombatFeed")
-  RegisterForSingleUpdate(UpdateTime)
+  Target.StartDeferredKill()
+  Target.SetRestrained()
+  PlayerRef.MoveTo(Target, abMatchRotation = False)
+  PlayerRef.StartVampireFeed(Target)
+  Target.SendAssaultAlarm()
+  Utility.Wait(FeedDuration)
+  Game.SetPlayerAIDriven(False)
+  Game.EnablePlayerControls()
+  Target.Kill(PlayerRef)
+  Target.EndDeferredKill()
+  PlayerRef.RestoreActorValue("health", FeedHealthRestored)
   PlayerVampireQuest.VampireFeed()
+  Game.IncrementStat("Necks Bitten")
 
 EndFunction
 
 Function HandleCombatBite(Actor Target)
 
-  TargetRef = Target
-
-  TargetRef.StartDeferredKill()
-  TargetRef.SetRestrained()
-  PlayerRef.MoveTo(TargetRef, abMatchRotation = False)
-  PlayerRef.StartVampireFeed(TargetRef)
-  TargetRef.SendAssaultAlarm()
-  GoToState("CombatBite")
-  RegisterForSingleUpdate(UpdateTime)
+  Target.StartDeferredKill()
+  Target.SetRestrained()
+  PlayerRef.MoveTo(Target, abMatchRotation = False)
+  PlayerRef.StartVampireFeed(Target)
+  Target.SendAssaultAlarm()
+  Utility.Wait(FeedDuration)
+  Game.SetPlayerAIDriven(False)
+  Game.EnablePlayerControls()
+  Target.Kill(PlayerRef)
+  Target.EndDeferredKill()
+  PlayerRef.RestoreActorValue("health", BiteHealthRestored)
+  Game.IncrementStat("Necks Bitten")
 
 EndFunction
