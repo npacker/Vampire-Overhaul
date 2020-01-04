@@ -15,6 +15,8 @@ PlayerVampireQuestScript Property PlayerVampireQuest Auto
 
 DLC1VQ02HarkonQuestScript Property DLC1VQ02Harkon Auto
 
+DLC1ReferenceAliasArrayScript Property DLC1VampireTurnReferenceAliasArray Auto
+
 Keyword Property Vampire Auto
 
 Actor Property PlayerRef Auto
@@ -46,8 +48,6 @@ Spell Property DLC1VampireChangeFX Auto
 Idle Property IdleVampireStandingFeedFront_Loose Auto
 Idle Property pa_VampireLordChangePlayer Auto
 
-Race Property DLC1VampireBeastRace Auto
-
 CompanionsHousekeepingScript Property C00 Auto
 
 ReferenceAlias Property DisguisedVampireLordName Auto
@@ -75,11 +75,9 @@ Function PlayerBitesMe(Actor ActorToTurn)
 
   StartQuestDLC1VampireFeedBystander(ActorToTurn)
 
-  If ActorToTurn.IsInFaction(DLC1PotentialVampireFaction) \
-      && !ActorToTurn.IsInFaction(DLC1PlayerTurnedVampire)
+  If ActorToTurn.IsInFaction(DLC1PotentialVampireFaction) && !ActorToTurn.IsInFaction(DLC1PlayerTurnedVampire)
     TurnMeIntoVampire(ActorToTurn)
-  ElseIf DLC1VQ03VampireDexion \
-      && (DLC1VQ03VampireDexion.GetReference() as Actor) == ActorToTurn
+  ElseIf DLC1VQ03VampireDexion && (DLC1VQ03VampireDexion.GetReference() as Actor) == ActorToTurn
     If DLC1VQ03Vampire.GetStageDone(67)
       DLC1VQ03Vampire.SetStage(70)
     EndIf
@@ -101,7 +99,9 @@ Function TurnMeIntoVampire(Actor ActorToTurn)
 
   ReferenceAlias OpenReferenceAlias = GetNextAlias()
 
-  OpenReferenceAlias.ForceRefTo(ActorToTurn)
+  If OpenReferenceAlias
+    OpenReferenceAlias.ForceRefTo(ActorToTurn)
+  EndIf
 
   ; Communicate successfully turned into vampire.
   If DLC1RV06.IsRunning() && ActorToTurn == (DLC1RV06Spouse.GetReference() as Actor)
@@ -117,7 +117,7 @@ EndFunction
 
 Function PlayerChangedLocationCompleteChange()
 {
-  Called by DLC1VampireTurnPlayerScript when player changes location.
+  Called by OnLocationChange in DLC1VampireTurnPlayerScript.
 }
 
   CompleteChange(NewVampire1)
@@ -136,13 +136,13 @@ Function CompleteChange(ReferenceAlias AliasToTurn)
   Actor ActorToTurn = AliasToTurn.GetReference() as Actor
 
   If ActorToTurn
-    ; UDGP 2.0.1 - Needed to add a check for the actor being in a None location
-    ; as it appears at least some targets can be and the function aborts If this
-    ; is the case.
-    Location ATTLoc = ActorToTurn.GetCurrentLocation()
+    ; UDGP 2.0.1 Needed to add a check for the actor being in a None location as
+    ; it appears at least some targets can be and the function aborts if this is
+    ; the case.
+    Location ActorToTurnLocation = ActorToTurn.GetCurrentLocation()
 
-    If ATTLoc == None || !PlayerRef.IsInLocation(ATTLoc)
-      ((Self as Quest) as DLC1ReferenceAliasArrayScript).ForceRefInto(ActorToTurn)
+    If !ActorToTurnLocation || !PlayerRef.IsInLocation(ActorToTurnLocation)
+      DLC1VampireTurnReferenceAliasArray.ForceRefInto(ActorToTurn)
       ActorToTurn.AddToFaction(DLC1PlayerTurnedVampire)
 
       If ActorToTurn.GetRelationshipRank(PlayerRef) < 1
@@ -184,30 +184,31 @@ ReferenceAlias Function GetNextAlias()
 EndFunction
 
 Function MakeAliasesEyesRed()
+{
+  Called from OnPlayerLoadGame() in DLC1VapmireTurnPlayerAliasScript.
+}
 
-  ReferenceAlias[] RedEyeAliasArray = ((Self as Quest) as DLC1ReferenceAliasArrayScript).AliasArray
+  ReferenceAlias[] RedEyeAliasArray = DLC1VampireTurnReferenceAliasArray.AliasArray
   Int Index = RedEyeAliasArray.Length
 
   While Index
     Index -= 1
 
-    If (RedEyeAliasArray[Index].GetReference() as Actor)
-      MakeMyEyesRed(RedEyeAliasArray[Index])
-    EndIf
+    MakeMyEyesRed(RedEyeAliasArray[Index])
   EndWhile
 
 EndFunction
 
 Function MakeMyEyesRed(ReferenceAlias AliasWhoseActorToGiveRedEyes)
 {
-  Called by OnLoad() by DLC1VampireTurnRedEyes, and by MakeAliasesEyesRed().
+  Called by OnLoad() by DLC1VampireTurnRedEyesScript, and by MakeAliasesEyesRed().
 }
 
   Actor ActorToChange = AliasWhoseActorToGiveRedEyes.GetReference() as Actor
 
   ; UDGP 1.2.2 added 3D load check due to Papyrus errors on startup if you're
   ; not in the location.
-  If ActorToChange.Is3DLoaded()
+  If ActorToChange && ActorToChange.Is3DLoaded()
     ActorToChange.SetEyeTexture(EyesMaleHumanVampire01)
   EndIf
 
