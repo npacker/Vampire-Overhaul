@@ -15,7 +15,7 @@ PlayerVampireQuestScript Property PlayerVampireQuest Auto
 
 DLC1VQ02HarkonQuestScript Property DLC1VQ02Harkon Auto
 
-DLC1ReferenceAliasArrayScript Property DLC1VampireTurnReferenceAliasArray Auto
+CompanionsHousekeepingScript Property C00 Auto
 
 Keyword Property Vampire Auto
 
@@ -27,7 +27,14 @@ ReferenceAlias Property NewVampire3 Auto
 ReferenceAlias Property NewVampire4 Auto
 ReferenceAlias Property NewVampire5 Auto
 
-Faction Property DLC1PlayerTurnedVampire Auto
+ReferenceAlias Property GiveMeRedEyes1 Auto
+ReferenceAlias Property GiveMeRedEyes2 Auto
+ReferenceAlias Property GiveMeRedEyes3 Auto
+ReferenceAlias Property GiveMeRedEyes4 Auto
+ReferenceAlias Property GiveMeRedEyes5 Auto
+
+ReferenceAlias Property DisguisedVampireLordName Auto
+
 Faction Property DLC1PotentialVampireFaction Auto
 Faction Property DLC1RV07CoffinOwnerFaction Auto
 Faction Property DLC1RV07ThankFaction Auto
@@ -47,10 +54,6 @@ Spell Property DLC1VampireChangeFX Auto
 
 Idle Property IdleVampireStandingFeedFront_Loose Auto
 Idle Property pa_VampireLordChangePlayer Auto
-
-CompanionsHousekeepingScript Property C00 Auto
-
-ReferenceAlias Property DisguisedVampireLordName Auto
 
 TextureSet Property EyesMaleHumanVampire01 Auto
 
@@ -75,9 +78,9 @@ Function PlayerBitesMe(Actor ActorToTurn)
 
   StartQuestDLC1VampireFeedBystander(ActorToTurn)
 
-  If ActorToTurn.IsInFaction(DLC1PotentialVampireFaction) && !ActorToTurn.IsInFaction(DLC1PlayerTurnedVampire)
+  If ActorToTurn.IsInFaction(DLC1PotentialVampireFaction)
     TurnMeIntoVampire(ActorToTurn)
-  ElseIf DLC1VQ03VampireDexion && (DLC1VQ03VampireDexion.GetReference() as Actor) == ActorToTurn
+  ElseIf DLC1VQ03VampireDexion && ActorToTurn == (DLC1VQ03VampireDexion.GetReference() as Actor)
     If DLC1VQ03Vampire.GetStageDone(67)
       DLC1VQ03Vampire.SetStage(70)
     EndIf
@@ -86,6 +89,9 @@ Function PlayerBitesMe(Actor ActorToTurn)
 EndFunction
 
 Function StartQuestDLC1VampireFeedBystander(Actor ActorToTurn)
+{
+  Called from PlayerBitesMe().
+}
 
   DLC1VampireFeedStartTime.SetValue(Utility.GetCurrentGameTime())
   DLC1VampireFeedBystanderStart.SendStoryEvent(akRef1 = ActorToTurn)
@@ -94,7 +100,7 @@ EndFunction
 
 Function TurnMeIntoVampire(Actor ActorToTurn)
 {
-  Called from PlayerBitesMe().
+  Called from PlayerBitesMe() and DLC1VampireTurnPerk.
 }
 
   ReferenceAlias OpenReferenceAlias = GetNextAlias()
@@ -136,14 +142,14 @@ Function CompleteChange(ReferenceAlias AliasToTurn)
   Actor ActorToTurn = AliasToTurn.GetReference() as Actor
 
   If ActorToTurn
-    ; UDGP 2.0.1 Needed to add a check for the actor being in a None location as
-    ; it appears at least some targets can be and the function aborts if this is
-    ; the case.
     Location ActorToTurnLocation = ActorToTurn.GetCurrentLocation()
 
     If !ActorToTurnLocation || !PlayerRef.IsInLocation(ActorToTurnLocation)
-      DLC1VampireTurnReferenceAliasArray.ForceRefInto(ActorToTurn)
-      ActorToTurn.AddToFaction(DLC1PlayerTurnedVampire)
+      ReferenceAlias RedEyesAlias = GetRedEyesAlias(AliasToTurn)
+
+      If RedEyesAlias
+        RedEyesAlias.ForceRefTo(ActorToTurn)
+      EndIf
 
       If ActorToTurn.GetRelationshipRank(PlayerRef) < 1
         ActorToTurn.SetRelationshipRank(PlayerRef, 1)
@@ -183,19 +189,39 @@ ReferenceAlias Function GetNextAlias()
 
 EndFunction
 
+ReferenceAlias Function GetRedEyesAlias(ReferenceAlias NewVampireAlias)
+{
+  Called from CompleteChange().
+}
+
+  ReferenceAlias ReferenceAliasToReturn
+
+  If NewVampireAlias == NewVampire1
+    ReferenceAliasToReturn = GiveMeRedEyes1
+  ElseIf NewVampireAlias == NewVampire2
+    ReferenceAliasToReturn = GiveMeRedEyes2
+  ElseIf NewVampireAlias == NewVampire3
+    ReferenceAliasToReturn = GiveMeRedEyes3
+  ElseIf NewVampireAlias == NewVampire4
+    ReferenceAliasToReturn = GiveMeRedEyes4
+  ElseIf NewVampireAlias == NewVampire5
+    ReferenceAliasToReturn = GiveMeRedEyes5
+  EndIf
+
+  Return ReferenceAliasToReturn
+
+EndFunction
+
 Function MakeAliasesEyesRed()
 {
   Called from OnPlayerLoadGame() in DLC1VapmireTurnPlayerAliasScript.
 }
 
-  ReferenceAlias[] RedEyeAliasArray = DLC1VampireTurnReferenceAliasArray.AliasArray
-  Int Index = RedEyeAliasArray.Length
-
-  While Index
-    Index -= 1
-
-    MakeMyEyesRed(RedEyeAliasArray[Index])
-  EndWhile
+  MakeMyEyesRed(GiveMeRedEyes1)
+  MakeMyEyesRed(GiveMeRedEyes2)
+  MakeMyEyesRed(GiveMeRedEyes3)
+  MakeMyEyesRed(GiveMeRedEyes4)
+  MakeMyEyesRed(GiveMeRedEyes5)
 
 EndFunction
 
@@ -206,8 +232,6 @@ Function MakeMyEyesRed(ReferenceAlias AliasWhoseActorToGiveRedEyes)
 
   Actor ActorToChange = AliasWhoseActorToGiveRedEyes.GetReference() as Actor
 
-  ; UDGP 1.2.2 added 3D load check due to Papyrus errors on startup if you're
-  ; not in the location.
   If ActorToChange && ActorToChange.Is3DLoaded()
     ActorToChange.SetEyeTexture(EyesMaleHumanVampire01)
   EndIf
