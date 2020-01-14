@@ -22,7 +22,7 @@ Int Property BiteHealthRestored Auto
 ;
 ;-------------------------------------------------------------------------------
 
-Float FeedDuration = 1.0
+Float FeedDuration = 3.0
 
 ;-------------------------------------------------------------------------------
 ;
@@ -57,12 +57,15 @@ Function HandleCombatFeed(Actor Target)
 
   Target.StartDeferredKill()
   Target.SetRestrained()
-  PlayerRef.MoveTo(Target, abMatchRotation = False)
+  Target.SetDontMove()
   PlayerRef.StartVampireFeed(Target)
   Target.SendAssaultAlarm()
   Utility.Wait(FeedDuration)
   Game.SetPlayerAIDriven(False)
   Game.EnablePlayerControls()
+  Utility.Wait(FeedDuration)
+  Target.SetRestrained(False)
+  Target.SetDontMove(False)
   Target.Kill(PlayerRef)
   Target.EndDeferredKill()
   PlayerRef.RestoreActorValue("health", FeedHealthRestored)
@@ -75,12 +78,15 @@ Function HandleCombatBite(Actor Target)
 
   Target.StartDeferredKill()
   Target.SetRestrained()
-  PlayerRef.MoveTo(Target, abMatchRotation = False)
+  Target.SetDontMove()
   PlayerRef.StartVampireFeed(Target)
   Target.SendAssaultAlarm()
   Utility.Wait(FeedDuration)
   Game.SetPlayerAIDriven(False)
   Game.EnablePlayerControls()
+  Utility.Wait(FeedDuration)
+  Target.SetRestrained(False)
+  Target.SetDontMove(False)
   Target.Kill(PlayerRef)
   Target.EndDeferredKill()
   PlayerRef.RestoreActorValue("health", BiteHealthRestored)

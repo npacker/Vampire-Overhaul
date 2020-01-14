@@ -10,7 +10,6 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
 
   If !Game.GetPlayer().IsInKillMove()
     DLC1PlayerVampireQuest.Revert()
-    Dispel()
   Endif
 
 EndEvent

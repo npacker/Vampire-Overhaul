@@ -221,15 +221,6 @@ Perk Property DLC1VampireBite Auto
 Perk Property DLC1VampiricGrip Auto
 
 ;-------------------------------------------------------------------------------
-; VAMPIRE EFFECTS AND ABILITIES TO REMOVE
-;-------------------------------------------------------------------------------
-
-Spell Property VampireSunDamage01 Auto
-Spell Property VampireSunDamage02 Auto
-Spell Property VampireSunDamage03 Auto
-Spell Property VampireSunDamage04 Auto
-
-;-------------------------------------------------------------------------------
 ; ANIMATION EVENT NAMES
 ;-------------------------------------------------------------------------------
 
@@ -370,6 +361,11 @@ Function PrepShift()
   ; Preload the spells the player can equip.
   PreloadSpells()
 
+  ; Abort if the player has died.
+  If PlayerRef.IsDead()
+    Return
+  EndIf
+
   ; Set up the UI restrictions.
   PreTransformDisablePlayerControls()
   Game.EnableFastTravel(False)
@@ -377,11 +373,6 @@ Function PrepShift()
   Game.ShowFirstPersonGeometry(False)
   Game.SetBeastForm(True)
   PlayerRef.AddPerk(DLC1VampireActivationBlocker)
-
-  ; Abort if the player has died.
-  If PlayerRef.IsDead()
-    Return
-  EndIf
 
   ; Screen effect and sound.
   VampireChange.Apply()
@@ -413,7 +404,7 @@ Function InitialShift()
     Float CurrentHealth = PlayerRef.GetActorValue("health")
 
     If CurrentHealth <= 100
-      PlayerRef.RestoreActorValue("health", 100 - CurrentHealth)
+      PlayerRef.RestoreActorValue("health", 101 - CurrentHealth)
     EndIf
 
     PlayerRef.UnequipItem(DLC1nVampireBloodMagicRingBeast, False, True)
@@ -425,7 +416,7 @@ Function InitialShift()
     Float CurrentMagicka = PlayerRef.GetActorValue("magicka")
 
     If CurrentMagicka <= 100
-      PlayerRef.RestoreActorValue("magicka", 100 - CurrentMagicka)
+      PlayerRef.RestoreActorValue("magicka", 101 - CurrentMagicka)
     EndIf
 
     PlayerRef.UnequipItem(DLC1nVampireBloodMagicRingErudite, False, True)
@@ -481,12 +472,6 @@ Function StartTracking()
   ; EndIf
   ;
   ; PlayerRef.EquipItem(DLC1ClothesVampireLordArmor, abPreventRemoval = True, abSilent = True)
-
-  ; Remove Vampire versions of sun damage.
-  PlayerRef.RemoveSpell(VampireSunDamage01)
-  PlayerRef.RemoveSpell(VampireSunDamage02)
-  PlayerRef.RemoveSpell(VampireSunDamage03)
-  PlayerRef.RemoveSpell(VampireSunDamage04)
 
   ; Replace with Vampire Lord version of sun damage.
   PlayerRef.AddSpell(DLC1VampireLordSunDamage, False)
@@ -575,7 +560,7 @@ Function ShiftBack()
   TryingToShiftBack = True
 
   While PlayerRef.GetAnimationVariableBool("bIsSynced")
-    Utility.Wait(0.1)
+    Utility.Wait(0.05)
   EndWhile
 
   ShiftingBack = False
@@ -610,7 +595,7 @@ Function ActuallyShiftBackIfNecessary()
 
   ; Apply revert screen effects and sound.
   VampireChange.Apply()
-  VampireIMODSound.Play(PlayerRef)
+  ; VampireIMODSound.Play(PlayerRef)
 
   ; We now add the visual FX with a long duration and remove it later.
   DLC1VampireChangeBackFXS.Play(PlayerRef)
@@ -631,20 +616,18 @@ Function ActuallyShiftBackIfNecessary()
 
   ; Ensure attributes are at a reasonable level after changing back.
   Float CurrentHealth = PlayerRef.GetActorValue("health")
+  Float CurrentStamina = PlayerRef.GetActorValue("stamina")
+  Float CurrentMagicka = PlayerRef.GetActorValue("magicka")
 
-  If CurrentHealth <= 100
+  If CurrentHealth < 100
     PlayerRef.RestoreActorValue("health", 100 - CurrentHealth)
   EndIf
 
-  Float CurrentStamina = PlayerRef.GetActorValue("stamina")
-
-  If CurrentStamina <= 100
+  If CurrentStamina < 100
     PlayerRef.RestoreActorValue("stamina", 100 - CurrentStamina)
   EndIf
 
-  Float CurrentMagicka = PlayerRef.GetActorValue("magicka")
-
-  If CurrentMagicka <= 100
+  If CurrentMagicka < 100
     PlayerRef.RestoreActorValue("magicka", 100 - CurrentMagicka)
   EndIf
 
@@ -670,12 +653,13 @@ Function ActuallyShiftBackIfNecessary()
   PlayerRef.DispelSpell(DLC1VampireMistform)
   PlayerRef.DispelSpell(VampireHuntersSight)
 
+  ; Land before transforming back.
+  If !PlayerRef.IsSneaking()
+    PlayerRef.StartSneaking()
+  EndIf
+
   ; Remove Vampire Lord VFX.
   PlayerRef.RemoveSpell(DLC1AbVampireFloatBodyFX)
-
-  ; Refresh current vamprie stage, which will restore all normal vampire
-  ; abilities.
-  PlayerVampireQuest.VampireProgression(PlayerRef, PlayerVampireQuest.VampireStatus, Verbose = False)
 
   ; Re-equip vampire items that were equipped before transformation.
   If DLC1nVampireNecklaceBats.GetValue() == 1
@@ -1056,25 +1040,5 @@ Function PostRevertEnablePlayerControls()
   Game.SetInChargen(False, False, False)
 
   (PlayerRef.GetBaseObject() as ActorBase).SetInvulnerable(False)
-
-EndFunction
-
-; ------------------------------------------------------------------------------
-; OBSOLETE FUNCTIONS
-; ------------------------------------------------------------------------------
-
-Function Feed(Actor victim)
-{
-  Called from Stage 11 (disabled).
-}
-
-EndFunction
-
-Function WarnPlayer()
-{
-  Called from Stage 20 (disabled).
-}
-
-  VampireWarn.Apply()
 
 EndFunction
