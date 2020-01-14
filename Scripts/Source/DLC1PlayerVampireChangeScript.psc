@@ -25,7 +25,7 @@ ImageSpaceModifier Property VampireChange Auto
 Sound Property VampireIMODSound Auto
 { Sound played upon change. }
 
-EffectShader Property DLC1VampireChangeBackFXS Auto
+EffectShader Property DLC1VampireChangeBack01FXS Auto
 { Visual effect for revert form. }
 
 EffectShader Property DLC1VampireChangeBack02FXS Auto
@@ -294,10 +294,10 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
 
     ; Now unequip and remove whatever spells are in the left & right hands.
     PlayerRef.UnequipSpell(LeveledDrainSpell, 1)
+    PlayerRef.RemoveSpell(LeveledConjureGargoyleSpell)
     PlayerRef.RemoveSpell(LeveledRaiseDeadSpell)
     PlayerRef.RemoveSpell(DlC1CorpseCurse)
     PlayerRef.RemoveSpell(DLC1VampiresGrip)
-    PlayerRef.RemoveSpell(LeveledConjureGargoyleSpell)
   EndIf
   ; END LANDED
 
@@ -593,12 +593,11 @@ Function ActuallyShiftBackIfNecessary()
   ; the value would be incorrect.
   UnregisterForEvents()
 
-  ; Apply revert screen effects and sound.
+  ; Apply revert screen effects.
   VampireChange.Apply()
-  ; VampireIMODSound.Play(PlayerRef)
 
   ; We now add the visual FX with a long duration and remove it later.
-  DLC1VampireChangeBackFXS.Play(PlayerRef)
+  DLC1VampireChangeBack01FXS.Play(PlayerRef)
 
   ; Remove the light foot perk if the player has not earned it.
   If !DLC1HasLightfoot
@@ -656,6 +655,7 @@ Function ActuallyShiftBackIfNecessary()
   ; Land before transforming back.
   If !PlayerRef.IsSneaking()
     PlayerRef.StartSneaking()
+    PlayerRef.WaitForAnimationEvent(Ground)
   EndIf
 
   ; Remove Vampire Lord VFX.
@@ -703,7 +703,7 @@ Function Shutdown()
 
   ; We remove the Effect shader here now. And now we also try to book end it
   ; with another shader.
-  DLC1VampireChangeBackFXS.Stop(PlayerRef)
+  DLC1VampireChangeBack01FXS.Stop(PlayerRef)
   DLC1VampireChangeBack02FXS.Play(PlayerRef, 0.1)
 
   ; Player should no longer be attacked on sight.
