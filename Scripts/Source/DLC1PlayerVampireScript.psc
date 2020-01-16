@@ -28,9 +28,9 @@ Event OnRaceSwitchComplete()
   DLC1ReflexesCount.SetValue(0)
 
   If PlayerRef.GetRace() == DLC1VampireBeastRace
-    (GetOwningQuest() as DLC1PlayerVampireChangeScript).StartTracking()
+    (GetOwningQuest() as DLC1PlayerVampireChangeScript).PostChange()
   Else
-    (GetOwningQuest() as DLC1PlayerVampireChangeScript).Shutdown()
+    (GetOwningQuest() as DLC1PlayerVampireChangeScript).PostRevert()
   EndIf
 
 EndEvent

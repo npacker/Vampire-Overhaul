@@ -48,23 +48,19 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
 
   If TargetRef.GetActorBase().GetRace() != DLC1VampireLordRace
     RegisterForAnimationEvent(TargetRef, SetRaceEvent)
-    RegisterForSingleUpdate(10.0)
-    TargetRef.PlayIdle(IdleVampireTransformation)
+
+    If !TargetRef.PlayIdle(IdleVampireTransformation)
+      UnregisterForAnimationEvent(TargetRef, SetRaceEvent)
+      DLC1PlayerVampireQuest.Stop()
+    EndIf
   EndIf
-
-EndEvent
-
-Event OnUpdate()
-
-  Transform()
 
 EndEvent
 
 Event OnAnimationEvent(ObjectReference akSource, String asEventName)
 
-  If asEventName == SetRaceEvent
+  If akSource == TargetRef && asEventName == SetRaceEvent
     UnregisterForAnimationEvent(TargetRef, SetRaceEvent)
-    UnregisterForUpdate()
     Transform()
   EndIf
 

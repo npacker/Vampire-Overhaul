@@ -443,7 +443,7 @@ Function InitialShift()
 
 EndFunction
 
-Function StartTracking()
+Function PostChange()
 {
   Called from DLC1PlayerVampireScript in OnRaceSwitchComplete().
 }
@@ -526,12 +526,12 @@ Function StartTracking()
   ; But they also don't know that it's you.
   Game.SetPlayerReportCrime(False)
 
+  ; Re-enable controls, saving and waiting.
+  VampireLordEnablePlayerControls()
+
   ; We're done with the transformation handling. Player is now free to roam as a
   ; Vampire Lord.
   SetStage(10)
-
-  ; Re-enable controls, saving and waiting.
-  VampireLordEnablePlayerControls()
 
 EndFunction
 
@@ -653,10 +653,10 @@ Function ActuallyShiftBackIfNecessary()
   PlayerRef.DispelSpell(VampireHuntersSight)
 
   ; Land before transforming back.
-  If !PlayerRef.IsSneaking()
-    PlayerRef.StartSneaking()
-    PlayerRef.WaitForAnimationEvent(Ground)
-  EndIf
+  ; If !PlayerRef.IsSneaking()
+    ; PlayerRef.StartSneaking()
+    ; PlayerRef.WaitForAnimationEvent(Ground)
+  ; EndIf
 
   ; Remove Vampire Lord VFX.
   PlayerRef.RemoveSpell(DLC1AbVampireFloatBodyFX)
@@ -684,13 +684,13 @@ Function ActuallyShiftBackIfNecessary()
   ; PlayerRef.RemoveItem(DLC1ClothesVampireLordArmor, aiCount = VampireLordArmorCount, abSilent = True)
 
   ; Switch back the player race. This will call OnRaceSwitchComplete() on the
-  ; DLC1PlayerVampireScript, which will in turn invoke Shutdown() on this
+  ; DLC1PlayerVampireScript, which will in turn invoke PostRevert() on this
   ; script.
   PlayerRef.SetRace((VampireTrackingQuest as DLC1VampireTrackingQuest).PlayerRace)
 
 EndFunction
 
-Function Shutdown()
+Function PostRevert()
 {
   Called by DLC1PlayerVampireScript in OnRaceSwitchComplete().
 }
@@ -716,6 +716,16 @@ Function Shutdown()
   ; get out of sync.
   PlayerRef.RemoveSpell(VampireHuntersSight)
 
+  ; Stop the quest.
+  Stop()
+
+EndFunction
+
+Function Shutdown()
+{
+  Called by Stage 200 (Shutdown).
+}
+
   ; Unload all Vampire Lord spells.
   UnloadSpells()
 
@@ -734,9 +744,6 @@ Function Shutdown()
   Game.ShowFirstPersonGeometry(True)
   Game.EnableFastTravel(True)
   PostRevertEnablePlayerControls()
-
-  ; Stop the quest.
-  Stop()
 
 EndFunction
 
@@ -875,8 +882,6 @@ Function VampireLordSetHate(Bool Hate = True)
     HateFaction.SetEnemy(DLC1PlayerVampireLordFaction)
     HateFaction.SetPlayerEnemy(Hate)
   EndWhile
-
-  PlayerRef.SetAttackActorOnSight(Hate)
 
 EndFunction
 
