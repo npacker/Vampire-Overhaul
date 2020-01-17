@@ -134,14 +134,58 @@ Float UpdateCheckInterval = 5.0
 Float LastUpdateTime
 ; The last VampireProgression() updated VampireStatus.
 
-Bool Updating = False
-; True if VampireProgression is in progress.
-
 Bool Feeding = False
 ; True if player is feeding.
 
+Bool Updating = False
+; True if VampireProgression is in progress.
+
 Bool Transforming = False
 ; True if the player is changing to or from being a vampire.
+
+;-------------------------------------------------------------------------------
+;
+; STATES
+;
+;-------------------------------------------------------------------------------
+
+State VampireFeed
+
+  Event OnBeginState()
+    Feeding = True
+
+    VampireStopFeedTimer()
+    VampireImageSpaceModifier()
+  EndEvent
+
+  Event OnEndState()
+    VampireStartFeedTimer()
+
+    Feeding = False
+  EndEvent
+
+  Event OnUpdate()
+    VampireFeedUpdate()
+  EndEvent
+
+  Function VampireFeedUpdate()
+    If VampireSafeToUpdate()
+      Bool RankUpdated = VampireUpdateRank()
+
+      VampireFeedMessage.Show()
+      VampireProgression(PlayerRef, 1)
+
+      If RankUpdated
+        VampireShowRankMessage()
+      EndIf
+
+      GoToState("")
+    Else
+      RegisterForSingleUpdate(UpdateCheckInterval)
+    EndIf
+  EndFunction
+
+EndState
 
 ;-------------------------------------------------------------------------------
 ;
@@ -187,29 +231,23 @@ Function VampireFeed()
     Return
   EndIf
 
-  Feeding = True
-
-  VampireStopFeedTimer()
-  VampireImageSpaceModifier()
+  GoToState("VampireFeed")
 
   If VampireStatus > 1
-    Bool RankUpdated = False
-
     Feedings += 1
     LastFeedTime = GameDaysPassed.GetValue()
-    RankUpdated = VampireUpdateRank()
 
-    VampireFeedMessage.Show()
-    VampireProgression(PlayerRef, 1)
-
-    If RankUpdated
-      VampireShowRankMessage()
-    EndIf
+    VampireFeedUpdate()
+  Else
+    GoToState("")
   EndIf
 
-  VampireStartFeedTimer()
+EndFunction
 
-  Feeding = False
+Function VampireFeedUpdate()
+
+  GoToState("VampireFeed")
+  VampireFeedUpdate()
 
 EndFunction
 
