@@ -12,6 +12,9 @@ Race Property DLC1VampireLordRace Auto
 Quest Property DLC1PlayerVampireQuest Auto
 { Vampire Lord control quest. }
 
+Spell Property DLC1VampireChange Auto
+{ Vampire Lord change ability. }
+
 DLC1VampireTrackingQuest Property DLC1VampireLordTrackingQuest Auto
 { Vampire Lord tracking quest. }
 
@@ -52,6 +55,7 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
     If !TargetRef.PlayIdle(IdleVampireTransformation)
       UnregisterForAnimationEvent(TargetRef, SetRaceEvent)
       DLC1PlayerVampireQuest.Stop()
+     TargetRef.DispelSpell(DLC1VampireChange)
     EndIf
   EndIf
 

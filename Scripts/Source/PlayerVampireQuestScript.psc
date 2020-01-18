@@ -102,6 +102,7 @@ Spell Property AbVampireChillTouch Auto
 Spell Property DLC1VampireChange Auto
 Spell Property VampireBloodMemory Auto
 Spell Property VampireChampionOfTheNight Auto
+Spell Property VampireFeralVisage Auto
 Spell Property VampireHuntersSight Auto
 Spell Property VampireInvisibilityPC Auto
 Spell Property VampireMesmerizingGaze Auto
@@ -254,8 +255,10 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
 
     If VampireStatus == 4
       PlayerRef.RemoveSpell(VampireMesmerizingGaze)
+      PlayerRef.AddSpell(VampireFeralVisage, False)
       VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
     Else
+      PlayerRef.RemoveSpell(VampireFeralVisage)
       PlayerRef.AddSpell(VampireMesmerizingGaze, False)
       VampireAddLeveledSpell(VampireRaiseThrallSpells, VampireRank)
     EndIf
@@ -434,7 +437,7 @@ Function VampireAddLeveledAbility(Spell[] VampireAbilities, Int VampireLevel)
     Index -= 1
 
     If Index == VampireLevel
-      PlayerRef.AddSpell(VampireAbilities[Index])
+      PlayerRef.AddSpell(VampireAbilities[Index], False)
     Else
       PlayerRef.RemoveSpell(VampireAbilities[Index])
     EndIf
