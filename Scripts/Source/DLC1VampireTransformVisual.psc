@@ -9,7 +9,7 @@ Scriptname DLC1VampireTransformVisual extends ActiveMagicEffect
 Race Property DLC1VampireLordRace Auto
 { Vampire Lord race. }
 
-Quest Property DLC1PlayerVampireQuest Auto
+DLC1PlayerVampireChangeScript Property DLC1PlayerVampireQuest Auto
 { Vampire Lord control quest. }
 
 Spell Property DLC1VampireChange Auto
@@ -54,8 +54,9 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
 
     If !TargetRef.PlayIdle(IdleVampireTransformation)
       UnregisterForAnimationEvent(TargetRef, SetRaceEvent)
-      DLC1PlayerVampireQuest.Stop()
-     TargetRef.DispelSpell(DLC1VampireChange)
+      DLC1PlayerVampireQuest.Shutdown()
+      TargetRef.DispelSpell(DLC1VampireChange)
+      Dispel()
     EndIf
   EndIf
 

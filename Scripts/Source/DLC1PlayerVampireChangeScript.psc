@@ -716,14 +716,14 @@ Function PostRevert()
   ; get out of sync.
   PlayerRef.RemoveSpell(VampireHuntersSight)
 
-  ; Stop the quest.
-  Stop()
+  ; Run shutdown tasks.
+  Shutdown()
 
 EndFunction
 
 Function Shutdown()
 {
-  Called by Stage 200 (Shutdown).
+  Clean up state and stop quest.
 }
 
   ; Unload all Vampire Lord spells.
@@ -744,6 +744,10 @@ Function Shutdown()
   Game.ShowFirstPersonGeometry(True)
   Game.EnableFastTravel(True)
   PostRevertEnablePlayerControls()
+
+  ; Stop the quest.
+  Utility.Wait(10.0)
+  Stop()
 
 EndFunction
 
