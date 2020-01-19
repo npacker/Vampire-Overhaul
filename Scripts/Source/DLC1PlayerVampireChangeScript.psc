@@ -25,11 +25,11 @@ ImageSpaceModifier Property VampireChange Auto
 Sound Property VampireIMODSound Auto
 { Sound played upon change. }
 
+Static Property XMarker Auto
+{ Marker at which to play change sound. }
+
 EffectShader Property DLC1VampireChangeBack01FXS Auto
 { Visual effect for revert form. }
-
-EffectShader Property DLC1VampireChangeBack02FXS Auto
-{ Second visual effect for revert form. }
 
 Armor Property DLC1ClothesVampireLordArmor Auto
 { The armor worn by the Vampire Lord. }
@@ -44,7 +44,7 @@ Spell Property DLC1AbVampireFloatBodyFX Auto
 PlayerVampireQuestScript Property PlayerVampireQuest Auto
 { The main player vampire tracking quest. }
 
-Quest Property VampireTrackingQuest Auto
+DLC1VampireTrackingQuest Property DLC1VampireLordTrackingQuest Auto
 { Quest responsible for tracking the player vampire in Dawnguard. }
 
 Quest Property DialogueGenericVampire Auto
@@ -243,6 +243,8 @@ Bool TrackingStarted = False
 Bool TryingToShiftBack = False
 Bool ShiftingBack = False
 Bool ShuttingDown = False
+
+ObjectReference SoundMarker
 
 ;-------------------------------------------------------------------------------
 ;
@@ -596,6 +598,12 @@ Function ActuallyShiftBackIfNecessary()
   ; Apply revert screen effects.
   VampireChange.Apply()
 
+  ; Place sound marker.
+  SoundMarker = PlayerRef.PlaceAtMe(XMarker)
+
+  ; Play transform sound.
+  VampireIMODSound.Play(SoundMarker)
+
   ; We now add the visual FX with a long duration and remove it later.
   DLC1VampireChangeBack01FXS.Play(PlayerRef)
 
@@ -683,10 +691,13 @@ Function ActuallyShiftBackIfNecessary()
   ;
   ; PlayerRef.RemoveItem(DLC1ClothesVampireLordArmor, aiCount = VampireLordArmorCount, abSilent = True)
 
+  ; We remove the Effect shader here now.
+  DLC1VampireChangeBack01FXS.Stop(PlayerRef)
+
   ; Switch back the player race. This will call OnRaceSwitchComplete() on the
   ; DLC1PlayerVampireScript, which will in turn invoke PostRevert() on this
   ; script.
-  PlayerRef.SetRace((VampireTrackingQuest as DLC1VampireTrackingQuest).PlayerRace)
+  PlayerRef.SetRace(DLC1VampireLordTrackingQuest.PlayerRace)
 
 EndFunction
 
@@ -701,10 +712,8 @@ Function PostRevert()
 
   ShuttingDown = True
 
-  ; We remove the Effect shader here now. And now we also try to book end it
-  ; with another shader.
-  DLC1VampireChangeBack01FXS.Stop(PlayerRef)
-  DLC1VampireChangeBack02FXS.Play(PlayerRef, 0.1)
+  ; Apply ending effect shader.
+  DLC1VampireLordTrackingQuest.PlayRevertShaderTail()
 
   ; Player should no longer be attacked on sight.
   VampireLordSetHate(False)
@@ -738,6 +747,12 @@ Function Shutdown()
   DLC1nVampireRingBeast.SetValue(0)
   DLC1nVampireRingErudite.SetValue(0)
 
+  ; Delete sound marker.
+  If SoundMarker
+    SoundMarker.Disable()
+    SoundMarker.Delete()
+  EndIf
+
   ; Remove UI restrictions.
   PlayerRef.RemovePerk(DLC1VampireActivationBlocker)
   Game.SetBeastForm(False)
@@ -746,7 +761,6 @@ Function Shutdown()
   PostRevertEnablePlayerControls()
 
   ; Stop the quest.
-  Utility.Wait(10.0)
   Stop()
 
 EndFunction
