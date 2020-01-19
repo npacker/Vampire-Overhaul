@@ -607,6 +607,9 @@ Function ActuallyShiftBackIfNecessary()
   ; Play transform sound.
   VampireIMODSound.Play(SoundMarker)
 
+  ; Wait for shader to play.
+  Utility.Wait(0.85)
+
   ; Remove the light foot perk if the player has not earned it.
   If !DLC1HasLightfoot
     PlayerRef.RemovePerk(Lightfoot)
@@ -697,7 +700,7 @@ Function ActuallyShiftBackIfNecessary()
   ; Switch back the player race. This will call OnRaceSwitchComplete() on the
   ; DLC1PlayerVampireScript, which will in turn invoke PostRevert() on this
   ; script.
-  Utility.Wait(0.1)
+  ; Utility.Wait(0.1)
   PlayerRef.SetRace(DLC1VampireLordTrackingQuest.PlayerRace)
 
 EndFunction
@@ -714,6 +717,7 @@ Function PostRevert()
   ShuttingDown = True
 
   ; Apply ending effect shader.
+  Utility.Wait(0.1)
   DLC1VampireLordTrackingQuest.PlayRevertShaderTail()
 
   ; Player should no longer be attacked on sight.
