@@ -595,6 +595,9 @@ Function ActuallyShiftBackIfNecessary()
   ; the value would be incorrect.
   UnregisterForEvents()
 
+  ; We now add the visual FX with a long duration and remove it later.
+  DLC1VampireChangeBack01FXS.Play(PlayerRef)
+
   ; Apply revert screen effects.
   VampireChange.Apply()
 
@@ -603,9 +606,6 @@ Function ActuallyShiftBackIfNecessary()
 
   ; Play transform sound.
   VampireIMODSound.Play(SoundMarker)
-
-  ; We now add the visual FX with a long duration and remove it later.
-  DLC1VampireChangeBack01FXS.Play(PlayerRef)
 
   ; Remove the light foot perk if the player has not earned it.
   If !DLC1HasLightfoot
@@ -691,12 +691,13 @@ Function ActuallyShiftBackIfNecessary()
   ;
   ; PlayerRef.RemoveItem(DLC1ClothesVampireLordArmor, aiCount = VampireLordArmorCount, abSilent = True)
 
-  ; We remove the Effect shader here now.
+  ; Ensure effect shader is removed.
   DLC1VampireChangeBack01FXS.Stop(PlayerRef)
 
   ; Switch back the player race. This will call OnRaceSwitchComplete() on the
   ; DLC1PlayerVampireScript, which will in turn invoke PostRevert() on this
   ; script.
+  Utility.Wait(0.1)
   PlayerRef.SetRace(DLC1VampireLordTrackingQuest.PlayerRace)
 
 EndFunction

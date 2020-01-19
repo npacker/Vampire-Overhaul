@@ -6,14 +6,8 @@ Race Property PlayerRace Auto
 
 Spell Property DLC1VampireRevertFX Auto
 
-Event OnUpdate()
-
-  DLC1VampireRevertFX.Cast(PlayerRef)
-
-EndEvent
-
 Function PlayRevertShaderTail()
 
-  RegisterForSingleUpdate(1.0)
+  DLC1VampireRevertFX.Cast(PlayerRef)
 
 EndFunction
