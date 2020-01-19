@@ -4,10 +4,16 @@ Actor Property PlayerRef Auto
 
 Race Property PlayerRace Auto
 
-EffectShader Property DLC1VampireChangeBack02FXS Auto
+Spell Property DLC1VampireRevertFX Auto
+
+Event OnUpdate()
+
+  DLC1VampireRevertFX.Cast(PlayerRef)
+
+EndEvent
 
 Function PlayRevertShaderTail()
 
-  DLC1VampireChangeBack02FXS.Play(PlayerRef, 10.0)
+  RegisterForSingleUpdate(1.0)
 
 EndFunction
