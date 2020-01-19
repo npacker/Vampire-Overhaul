@@ -8,6 +8,6 @@ EffectShader Property DLC1VampireChangeBack02FXS Auto
 
 Function PlayRevertShaderTail()
 
-  DLC1VampireChangeBack02FXS.Play(PlayerRef, 5.0)
+  DLC1VampireChangeBack02FXS.Play(PlayerRef, 10.0)
 
 EndFunction
