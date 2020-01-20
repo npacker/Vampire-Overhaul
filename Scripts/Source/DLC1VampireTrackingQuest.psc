@@ -9,5 +9,6 @@ Spell Property DLC1VampireRevertFX Auto
 Function PlayRevertShaderTail()
 
   DLC1VampireRevertFX.Cast(PlayerRef)
+  Utility.Wait(0.5)
 
 EndFunction
