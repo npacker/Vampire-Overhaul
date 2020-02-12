@@ -9,6 +9,8 @@ Scriptname DLC1RadiantScript extends Quest Conditional
 ;
 ;------------------------------------------------------------------------------
 
+DLC1BloodChaliceQuestScript Property DLC1BloodChaliceQuest Auto
+
 DLC1VampireTurnScript Property DLC1VampireTurn Auto
 
 DialogueFollowerScript Property DialogueFollower Auto
@@ -47,11 +49,7 @@ Formlist Property DLC1RV03InitialHighProfileTargets Auto
 GlobalVariable Property DLC1IntroCompletedHunter Auto
 GlobalVariable Property DLC1IntroCompletedVampire Auto
 GlobalVariable Property DLC1TrollCost Auto
-GlobalVariable Property DLC1VampireChaliceLevel Auto
-GlobalVariable Property DLC1VampireChaliceStopDay Auto
 GlobalVariable Property DLC1WENextSpecialAttackDay Auto
-GlobalVariable Property DLC1dunRedwaterDenPowerStopDay Auto
-GlobalVariable Property DLC1dunRedwaterDenWithdrawalStopDay Auto
 GlobalVariable Property GameDaysPassed Auto
 
 Int Property QuestState Auto Hidden
@@ -61,7 +59,6 @@ Keyword Property DLC1RadiantHunterStart Auto
 Keyword Property DLC1RadiantHunterTechStart Auto
 Keyword Property DLC1RadiantVampireStart Auto
 Keyword Property LocTypeHold Auto
-Keyword Property Vampire Auto
 
 LeveledItem Property DLC1RadiantReward Auto
 
@@ -81,8 +78,6 @@ Message Property DLC1TrollFollowerDismissedMsg Auto
 
 MiscObject Property Gold001 Auto
 
-ObjectReference Property DLC1BloodChaliceActivatorEmptyRef Auto
-ObjectReference Property DLC1BloodChaliceActivatorFullRef Auto
 ObjectReference Property DLC1DawnguardArmoredTrollSpawnMarker Auto
 ObjectReference Property DLC1VendorChestSorineJurardRef Auto
 
@@ -92,10 +87,6 @@ Potion Property DLC1BloodPotion Auto
 
 ReferenceAlias Property CurrentQuestGiver Auto
 ReferenceAlias Property TrollFollower Auto
-
-Spell Property DLC1VampireChalicePower Auto
-Spell Property DLC1dunRedwaterDenPower Auto
-Spell Property DLC1dunRedwaterDenWithdrawl Auto
 
 Quest Property DLC1VQ01 Auto
 Quest Property DLC1VQ02 Auto
@@ -114,18 +105,6 @@ Quest Property DLC1VQ08 Auto
 ;------------------------------------------------------------------------------
 
 Bool isQuestAccepted
-
-;------------------------------------------------------------------------------
-;
-; EVENTS
-;
-;------------------------------------------------------------------------------
-
-Event OnUpdateGameTime()
-
-  PlayerRef.RemoveSpell(DLC1VampireChalicePower)
-
-EndEvent
 
 ;------------------------------------------------------------------------------
 ;
@@ -455,74 +434,19 @@ EndFunction
 
 Function ChaliceRemoved()
 
-  DLC1BloodChaliceActivatorEmptyRef.Disable()
-  DLC1BloodChaliceActivatorFullRef.Disable()
+  DLC1BloodChaliceQuest.ChaliceRemoved()
 
 EndFunction
 
 Function ChaliceFilled()
 
-  DLC1BloodChaliceActivatorEmptyRef.Disable()
-  DLC1BloodChaliceActivatorFullRef.Enable()
+  DLC1BloodChaliceQuest.ChaliceFilled()
 
 EndFunction
 
 Function ChalicePowerUp()
 
-  Int NewLevel = (DLC1VampireChaliceLevel.GetValue() as Int) + 1
-
-  If NewLevel > 4
-    NewLevel = 4
-  EndIf
-
-  PlayerRef.RemoveSpell(DLC1VampireChalicePower)
-  DLC1VampireChaliceLevel.SetValue(NewLevel)
-
-EndFunction
-
-Function ChaliceDrink()
-
-  Int DaysToHavePower
-
-  Float Today = GameDaysPassed.GetValue()
-  Float ChaliceLevel = DLC1VampireChaliceLevel.GetValue()
-
-  RemoveRedwaterDenEffects(Today)
-
-  If ChaliceLevel as Int == 0
-    DaysToHavePower = 1
-  ElseIf ChaliceLevel as Int == 1
-    DaysToHavePower = 3
-  ElseIf ChaliceLevel as Int == 2
-    DaysToHavePower = 5
-  ElseIf ChaliceLevel as Int == 3
-    DaysToHavePower = 7
-  Else
-    DaysToHavePower = 9
-  EndIf
-
-  DLC1VampireChaliceStopDay.SetValue(Today + DaysToHavePower)
-  UnregisterForUpdateGameTime()
-  RegisterForSingleUpdateGameTime(24 * DaysToHavePower)
-
-  If PlayerRef.HasKeyword(Vampire)
-    PlayerRef.RemoveSpell(DLC1VampireChalicePower)
-    PlayerRef.AddSpell(DLC1VampireChalicePower)
-  EndIf
-
-EndFunction
-
-Function RemoveRedwaterDenEffects(Float Today)
-
-  If PlayerRef.HasSpell(DLC1dunRedwaterDenPower)
-    PlayerRef.RemoveSpell(DLC1dunRedwaterDenPower)
-    DLC1dunRedwaterDenPowerStopDay.SetValue(Today - 1)
-  EndIf
-
-  If PlayerRef.HasSpell(DLC1dunRedwaterDenWithdrawl)
-    PlayerRef.RemoveSpell(DLC1dunRedwaterDenWithdrawl)
-    DLC1dunRedwaterDenWithdrawalStopDay.SetValue(Today - 1)
-  EndIf
+  DLC1BloodChaliceQuest.ChalicePowerUp()
 
 EndFunction
 
