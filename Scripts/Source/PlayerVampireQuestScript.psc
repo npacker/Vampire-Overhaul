@@ -86,15 +86,6 @@ Sound Property MAGVampireTransform01 Auto
 MagicEffect Property DLC1VampireChangeEffect Auto
 { Vampire Lord ability for detecting when player is transforming. }
 
-Spell Property AbVampireSkills Auto
-{ Vanilla Champion of the Night. }
-
-Spell Property AbVampireSkills02 Auto
-{ Vanilla Nightstalker's Footsteps. }
-
-Spell[] Property VampireStrengthSpells Auto
-{ Vanilla Vampire strength spells. }
-
 FormList Property VampireImmuneDiseases Auto
 { Diseases to cure after transformation. }
 
@@ -158,14 +149,6 @@ Spell CurrentEquippedPower
 ; EVENTS
 ;
 ;-------------------------------------------------------------------------------
-
-Event OnInit()
-
-  PlayerRef.RemoveSpell(AbVampireSkills)
-  PlayerRef.RemoveSpell(AbVampireSkills02)
-  VampireRemoveLeveledSpells(VampireStrengthSpells)
-
-EndEvent
 
 Event OnUpdateGameTime()
 
@@ -344,8 +327,6 @@ Function VampireCure(Actor Target)
   VampireFeedReady.SetValue(0)
   VampireSetHate(False)
   PlayerRef.RemoveSpell(AbVampireChillTouch)
-  PlayerRef.RemoveSpell(AbVampireSkills)
-  PlayerRef.RemoveSpell(AbVampireSkills02)
   PlayerRef.RemoveSpell(DLC1VampireChange)
   PlayerRef.RemoveSpell(VampireBloodMemory)
   PlayerRef.RemoveSpell(VampireChampionOfTheNight)
@@ -360,7 +341,6 @@ Function VampireCure(Actor Target)
   VampireRemoveLeveledSpells(VampireClawsSpells)
   VampireRemoveLeveledSpells(VampireDrainSpells)
   VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
-  VampireRemoveLeveledSpells(VampireStrengthSpells)
   VampireRemoveLeveledSpells(VampireSunDamageSpells)
   PlayerRef.DispelSpell(VampireHuntersSight)
   PlayerRef.SetRace(PlayerVampireRaceController.GetCureRace())
