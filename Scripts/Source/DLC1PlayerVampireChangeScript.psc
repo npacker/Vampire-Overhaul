@@ -350,19 +350,6 @@ Function PrepShift()
   Start() on DLC1PlayerVampireQuest.
 }
 
-  ; Dispel summons.
-  DispelSummons()
-
-  ; Set up grab offset for Vampiric Grip.
-  PlayerRef.SetActorValue("GrabActorOffset", 70)
-
-  ; First, establish our leveled spells. The player cannot level up while
-  ; a Vampire Lord so we only need to do this once.
-  EstablishLeveledSpells()
-
-  ; Preload the spells the player can equip.
-  PreloadSpells()
-
   ; Abort if the player has died.
   If PlayerRef.IsDead()
     Return
@@ -376,13 +363,26 @@ Function PrepShift()
   Game.SetBeastForm(True)
   PlayerRef.AddPerk(DLC1VampireActivationBlocker)
 
-  ; Screen effect and sound.
-  VampireChange.Apply()
-  VampireIMODSound.Play(PlayerRef)
+  ; Set up grab offset for Vampiric Grip.
+  PlayerRef.SetActorValue("GrabActorOffset", 70)
+
+  ; Dispel summons.
+  DispelSummons()
+
+  ; First, establish our leveled spells. The player cannot level up while
+  ; a Vampire Lord so we only need to do this once.
+  EstablishLeveledSpells()
+
+  ; Preload the spells the player can equip.
+  PreloadSpells()
 
   ; Indicate that we're finished prepping. This is used
   ; to prevent HandlePlayerLoadGame from calling Preload when we don't need it.
   Prepped = True
+
+  ; Screen effect and sound.
+  VampireChange.Apply()
+  VampireIMODSound.Play(PlayerRef)
 
 EndFunction
 
@@ -542,6 +542,8 @@ Function Revert()
   Called from DLC1RevertEffectScript in OnEffectStart().
 }
 
+  PlayerRef.RemoveSpell(DLC1Revert)
+
   If Game.QueryStat("NumVampirePerks") >= DLC1VampireMaxPerks.GetValue()
     Game.AddAchievement(58)
   EndIf
@@ -562,10 +564,8 @@ Function ShiftBack()
   TryingToShiftBack = True
 
   While PlayerRef.GetAnimationVariableBool("bIsSynced")
-    Utility.Wait(0.05)
+    Utility.Wait(0.1)
   EndWhile
-
-  ShiftingBack = False
 
   ActuallyShiftBackIfNecessary()
 
@@ -700,7 +700,6 @@ Function ActuallyShiftBackIfNecessary()
   ; Switch back the player race. This will call OnRaceSwitchComplete() on the
   ; DLC1PlayerVampireScript, which will in turn invoke PostRevert() on this
   ; script.
-  ; Utility.Wait(0.1)
   PlayerRef.SetRace(DLC1VampireLordTrackingQuest.PlayerRace)
 
 EndFunction
@@ -717,8 +716,7 @@ Function PostRevert()
   ShuttingDown = True
 
   ; Apply ending effect shader.
-  Utility.Wait(0.1)
-  DLC1VampireLordTrackingQuest.PlayRevertShaderTail()
+  DLC1VampireLordTrackingQuest.PlayRevertShader()
 
   ; Player should no longer be attacked on sight.
   VampireLordSetHate(False)
@@ -978,7 +976,7 @@ Function HandlePlayerLoadGame()
 {
   This function is called from DLC1PlayerVampireScript from the OnPlayerLoadGame
   event. Since the preloaded state of spells is not saved, we need to balance
-  our Preload calls with Unload calls. This function
+  our Preload calls with Unload calls.
 
   We only do this after PrepShift has finished. That way we avoid calls to this
   function before or while PrepShift is active, thereby avoiding calling

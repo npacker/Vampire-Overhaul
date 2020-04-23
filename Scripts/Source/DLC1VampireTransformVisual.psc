@@ -27,6 +27,9 @@ Explosion Property DLC1VampChangeExplosion Auto
 Spell Property DLC1VampireChangeStagger Auto
 { Vampire Lord transformation stagger. }
 
+Actor Property PlayerRef Auto
+{ The player. }
+
 ;-------------------------------------------------------------------------------
 ;
 ; VARIABLES
@@ -54,7 +57,11 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
 
     If !TargetRef.PlayIdle(IdleVampireTransformation)
       UnregisterForAnimationEvent(TargetRef, SetRaceEvent)
-      DLC1PlayerVampireQuest.Shutdown()
+
+      If TargetRef == PlayerRef
+        DLC1PlayerVampireQuest.Shutdown()
+      EndIf
+
       TargetRef.DispelSpell(DLC1VampireChange)
       Dispel()
     EndIf
@@ -82,7 +89,6 @@ Function Transform()
   Transform the actor into the Vampire Lord form.
 }
 
-  Actor PlayerRef = Game.GetPlayer()
   Race CurrentRace = TargetRef.GetRace()
 
   If CurrentRace != DLC1VampireLordRace

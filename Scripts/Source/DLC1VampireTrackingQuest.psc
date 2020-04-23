@@ -6,8 +6,9 @@ Race Property PlayerRace Auto
 
 Spell Property DLC1VampireRevertFX Auto
 
-Function PlayRevertShaderTail()
+Function PlayRevertShader()
 
+  Utility.Wait(0.1)
   DLC1VampireRevertFX.Cast(PlayerRef)
   Utility.Wait(0.5)
 

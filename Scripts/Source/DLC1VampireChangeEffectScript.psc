@@ -6,10 +6,7 @@ Spell Property DLC1VampireChangeFX Auto
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 
-  If akTarget == Game.GetPlayer()
-    DLC1PlayerVampireQuest.Start()
-  EndIf
-
+  DLC1PlayerVampireQuest.Start()
   DLC1VampireChangeFX.Cast(akTarget)
 
 EndEvent
