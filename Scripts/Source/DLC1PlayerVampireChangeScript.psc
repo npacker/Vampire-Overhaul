@@ -350,19 +350,6 @@ Function PrepShift()
   Start() on DLC1PlayerVampireQuest.
 }
 
-  ; Abort if the player has died.
-  If PlayerRef.IsDead()
-    Return
-  EndIf
-
-  ; Set up the UI restrictions.
-  PreTransformDisablePlayerControls()
-  Game.EnableFastTravel(False)
-  Game.ForceThirdPerson()
-  Game.ShowFirstPersonGeometry(False)
-  Game.SetBeastForm(True)
-  PlayerRef.AddPerk(DLC1VampireActivationBlocker)
-
   ; Set up grab offset for Vampiric Grip.
   PlayerRef.SetActorValue("GrabActorOffset", 70)
 
@@ -379,6 +366,19 @@ Function PrepShift()
   ; Indicate that we're finished prepping. This is used
   ; to prevent HandlePlayerLoadGame from calling Preload when we don't need it.
   Prepped = True
+
+  ; Abort if the player has died.
+  If PlayerRef.IsDead()
+    Return
+  EndIf
+
+  ; Set up the UI restrictions.
+  PreTransformDisablePlayerControls()
+  Game.EnableFastTravel(False)
+  Game.ForceThirdPerson()
+  Game.ShowFirstPersonGeometry(False)
+  Game.SetBeastForm(True)
+  PlayerRef.AddPerk(DLC1VampireActivationBlocker)
 
   ; Screen effect and sound.
   VampireChange.Apply()
