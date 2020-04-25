@@ -135,15 +135,6 @@ Bool Updating = False
 Bool Transforming = False
 ; True if the player is changing to or from being a vampire.
 
-Spell CurrentEquippedSpellLeft
-; Currently equipped left-hand spell.
-
-Spell CurrentEquippedSpellRight
-; Currently equipped right-hand spell.
-
-Spell CurrentEquippedPower
-; Currently equipped power.
-
 ;-------------------------------------------------------------------------------
 ;
 ; EVENTS
@@ -232,29 +223,36 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
 
     If VampireStatus == 1
       PlayerRef.AddSpell(VampireInvisibilityPC, False)
-    Else
+      PlayerRef.AddSpell(VampireMesmerizingGaze, False)
+      VampireAddLeveledSpell(VampireRaiseThrallSpells, VampireRank)
+      PlayerRef.RemoveSpell(VampireFeralVisage)
+    EndIf
+
+    If VampireStatus == 2
+      PlayerRef.AddSpell(VampireMesmerizingGaze, False)
+      VampireAddLeveledSpell(VampireRaiseThrallSpells, VampireRank)
       PlayerRef.RemoveSpell(VampireInvisibilityPC)
+      PlayerRef.RemoveSpell(VampireFeralVisage)
+    EndIf
+
+    If VampireStatus == 3
+      PlayerRef.AddSpell(VampireMesmerizingGaze, False)
+      PlayerRef.RemoveSpell(VampireInvisibilityPC)
+      PlayerRef.RemoveSpell(VampireFeralVisage)
+      VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
     EndIf
 
     If VampireStatus == 4
-      PlayerRef.RemoveSpell(VampireMesmerizingGaze)
       PlayerRef.AddSpell(VampireFeralVisage, False)
+      PlayerRef.RemoveSpell(VampireInvisibilityPC)
+      PlayerRef.RemoveSpell(VampireMesmerizingGaze)
       VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
-    Else
-      PlayerRef.RemoveSpell(VampireFeralVisage)
-      PlayerRef.AddSpell(VampireMesmerizingGaze, False)
-      VampireAddLeveledSpell(VampireRaiseThrallSpells, VampireRank)
     EndIf
 
     PlayerRef.AddSpell(AbVampireChillTouch, False)
     PlayerRef.AddSpell(VampireBloodMemory, False)
     PlayerRef.AddSpell(VampireChampionOfTheNight, False)
     PlayerRef.AddSpell(VampireNightstalker, False)
-
-    CurrentEquippedSpellLeft = PlayerRef.GetEquippedSpell(0)
-    CurrentEquippedSpellRight = PlayerRef.GetEquippedSpell(1)
-    CurrentEquippedPower = PlayerRef.GetEquippedSpell(2)
-
     VampireAddLeveledSpell(VampireCharmSpells, VampireRank)
     VampireAddLeveledSpell(VampireDrainSpells, VampireRank)
     VampireAddLeveledAbility(AbVampireRankSpells, VampireRank)
@@ -265,17 +263,17 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
     VampireAddLeveledAbility(VampireSunDamageSpells, VampireStatus)
   EndIf
 
-  If VampireStatus < 4
+  If VampireStatus == 4
+    VampireSetHate(True)
+  Else
     VampireSetHate(False)
+  EndIf
 
-    If Verbose && VampireStatus > 1
+  If Verbose
+    If VampireStatus > 1 && VampireStatus < 4
       VampireStageProgressionMessage.Show()
       VampireImageSpaceModifier()
-    EndIf
-  ElseIf VampireStatus == 4
-    VampireSetHate(True)
-
-    If Verbose
+    ElseIf VampireStatus == 4
       VampireStage4Message.Show()
       VampireImageSpaceModifier()
     EndIf
@@ -436,6 +434,10 @@ Function VampireAddLeveledSpell(Spell[] VampireSpells, Int VampireLevel)
   Bool SpellRemovedRight = False
   Bool SpellRemovedPower = False
 
+  Spell CurrentEquippedSpellLeft = PlayerRef.GetEquippedSpell(0)
+  Spell CurrentEquippedSpellRight = PlayerRef.GetEquippedSpell(1)
+  Spell CurrentEquippedPower = PlayerRef.GetEquippedSpell(2)
+
   Int Index = VampireSpells.Length
 
   While Index > 1
@@ -454,14 +456,16 @@ Function VampireAddLeveledSpell(Spell[] VampireSpells, Int VampireLevel)
     EndIf
   EndWhile
 
-  PlayerRef.AddSpell(SpellToAdd, False)
+  If SpellToAdd
+    PlayerRef.AddSpell(SpellToAdd, False)
 
-  If SpellRemovedLeft
-    PlayerRef.EquipSpell(SpellToAdd, 0)
-  ElseIf SpellRemovedRight
-    PlayerRef.EquipSpell(SpellToAdd, 1)
-  ElseIf SpellRemovedPower
-    PlayerRef.EquipSpell(SpellToAdd, 2)
+    If SpellRemovedLeft
+      PlayerRef.EquipSpell(SpellToAdd, 0)
+    ElseIf SpellRemovedRight
+      PlayerRef.EquipSpell(SpellToAdd, 1)
+    ElseIf SpellRemovedPower
+      PlayerRef.EquipSpell(SpellToAdd, 2)
+    EndIf
   EndIf
 
 EndFunction
