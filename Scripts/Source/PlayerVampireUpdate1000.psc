@@ -1,4 +1,4 @@
-Scriptname PlayerVampireUpdate1000 extends Quest
+Scriptname PlayerVampireUpdate1000 extends PlayerVampireUpdate
 
 ;-------------------------------------------------------------------------------
 ;
@@ -30,7 +30,7 @@ Spell Property VampireStrength04 Auto
 ;
 ;-------------------------------------------------------------------------------
 
-Function Update(Actor PlayerRef)
+Function Update(Actor PlayerRef, PlayerVampireQuestScript PlayerVampireQuest)
 
   PlayerRef.RemoveSpell(AbVampireSkills)
   PlayerRef.RemoveSpell(AbVampireSkills02)

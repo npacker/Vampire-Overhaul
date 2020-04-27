@@ -95,7 +95,6 @@ Spell Property VampireBloodMemory Auto
 Spell Property VampireChampionOfTheNight Auto
 Spell Property VampireFeralVisage Auto
 Spell Property VampireHuntersSight Auto
-Spell Property VampireInvisibilityPC Auto
 Spell Property VampireMesmerizingGaze Auto
 Spell Property VampireNightstalker Auto
 
@@ -106,6 +105,7 @@ Spell[] Property AbVampireWeaknessSpells Auto
 Spell[] Property VampireCharmSpells Auto
 Spell[] Property VampireClawsSpells Auto
 Spell[] Property VampireDrainSpells Auto
+Spell[] Property VampireInvisibilitySpells Auto
 Spell[] Property VampireRaiseThrallSpells Auto
 Spell[] Property VampireSunDamageSpells Auto
 
@@ -135,6 +135,9 @@ Bool Updating = False
 Bool Transforming = False
 ; True if the player is changing to or from being a vampire.
 
+Bool VampireRankUpdated = False
+; True if VampireRank has changed, set to False after the notification is shown.
+
 ;-------------------------------------------------------------------------------
 ;
 ; EVENTS
@@ -144,8 +147,7 @@ Bool Transforming = False
 Event OnUpdateGameTime()
 
   If (GameDaysPassed.GetValue() - LastUpdateTime) >= 1.0
-    VampireStopFeedTimer()
-    RegisterForSingleUpdate(UpdateCheckInterval)
+    VampireRegisterForUpdate()
   EndIf
 
 EndEvent
@@ -162,7 +164,7 @@ Event OnUpdate()
     VampireProgression(PlayerRef, NewStage, NewStage != VampireStatus)
     VampireStartFeedTimer()
   Else
-    RegisterForSingleUpdate(UpdateCheckInterval)
+    VampireRegisterForUpdate()
   EndIf
 
 EndEvent
@@ -188,14 +190,9 @@ Function VampireFeed()
     Feedings += 1
     LastFeedTime = GameDaysPassed.GetValue()
 
-    Bool RankUpdated = VampireUpdateRank()
-
+    VampireUpdateRank()
     VampireFeedMessage.Show()
     VampireProgression(PlayerRef, 1)
-
-    If RankUpdated
-      VampireShowRankMessage()
-    EndIf
   EndIf
 
   VampireStartFeedTimer()
@@ -222,8 +219,8 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
     EndIf
 
     If VampireStatus == 1
-      PlayerRef.AddSpell(VampireInvisibilityPC, False)
       PlayerRef.AddSpell(VampireMesmerizingGaze, False)
+      VampireAddLeveledSpell(VampireInvisibilitySpells, VampireRank)
       VampireAddLeveledSpell(VampireRaiseThrallSpells, VampireRank)
       PlayerRef.RemoveSpell(VampireFeralVisage)
     EndIf
@@ -231,21 +228,21 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
     If VampireStatus == 2
       PlayerRef.AddSpell(VampireMesmerizingGaze, False)
       VampireAddLeveledSpell(VampireRaiseThrallSpells, VampireRank)
-      PlayerRef.RemoveSpell(VampireInvisibilityPC)
       PlayerRef.RemoveSpell(VampireFeralVisage)
+      VampireRemoveLeveledSpells(VampireInvisibilitySpells)
     EndIf
 
     If VampireStatus == 3
       PlayerRef.AddSpell(VampireMesmerizingGaze, False)
-      PlayerRef.RemoveSpell(VampireInvisibilityPC)
       PlayerRef.RemoveSpell(VampireFeralVisage)
+      VampireRemoveLeveledSpells(VampireInvisibilitySpells)
       VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
     EndIf
 
     If VampireStatus == 4
       PlayerRef.AddSpell(VampireFeralVisage, False)
-      PlayerRef.RemoveSpell(VampireInvisibilityPC)
       PlayerRef.RemoveSpell(VampireMesmerizingGaze)
+      VampireRemoveLeveledSpells(VampireInvisibilitySpells)
       VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
     EndIf
 
@@ -279,6 +276,11 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
     EndIf
   EndIf
 
+  If VampireRankUpdated
+    VampireRankUpdated = False
+    VampireRankMessages[VampireRank].Show()
+  EndIf
+
   Updating = False
 
 EndFunction
@@ -297,7 +299,6 @@ Function VampireChange(Actor Target)
   PlayerRef.SetRace(PlayerVampireRaceController.GetVampireRace())
   VampireRemoveSpells(VampireImmuneDiseases)
   VampireUpdateRank()
-  VampireShowRankMessage()
   VampireProgression(PlayerRef, 1)
   VampireStartFeedTimer()
   VampireEnablePlayerControls()
@@ -328,7 +329,6 @@ Function VampireCure(Actor Target)
   PlayerRef.RemoveSpell(DLC1VampireChange)
   PlayerRef.RemoveSpell(VampireBloodMemory)
   PlayerRef.RemoveSpell(VampireChampionOfTheNight)
-  PlayerRef.RemoveSpell(VampireInvisibilityPC)
   PlayerRef.RemoveSpell(VampireMesmerizingGaze)
   PlayerRef.RemoveSpell(VampireNightstalker)
   VampireRemoveLeveledSpells(AbVampireRankSpells)
@@ -338,6 +338,7 @@ Function VampireCure(Actor Target)
   VampireRemoveLeveledSpells(VampireCharmSpells)
   VampireRemoveLeveledSpells(VampireClawsSpells)
   VampireRemoveLeveledSpells(VampireDrainSpells)
+  VampireRemoveLeveledSpells(VampireInvisibilitySpells)
   VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
   VampireRemoveLeveledSpells(VampireSunDamageSpells)
   PlayerRef.DispelSpell(VampireHuntersSight)
@@ -357,6 +358,7 @@ Bool Function VampireUpdateRank(Bool Reset = False)
 
   If Reset || VampireStatus == 0
     VampireRank = 0
+    VampireRankUpdated = False
   Else
     If Feedings < 3
       VampireRank = 1
@@ -371,15 +373,11 @@ Bool Function VampireUpdateRank(Bool Reset = False)
     ElseIf PlayerLevel > 50
       VampireRank = 6
     EndIf
+
+    VampireRankUpdated = (VampireRank != OldVampireRank)
   EndIf
 
-  Return OldVampireRank != VampireRank
-
-EndFunction
-
-Function VampireShowRankMessage()
-
-  VampireRankMessages[VampireRank].Show()
+  Return VampireRankUpdated
 
 EndFunction
 
@@ -569,5 +567,18 @@ Function VampireStopFeedTimer()
 
   UnregisterForUpdate()
   UnregisterForUpdateGameTime()
+
+EndFunction
+
+Function VampireRegisterForUpdate()
+
+  RegisterForSingleUpdate(UpdateCheckInterval)
+
+EndFunction
+
+Function RegisterForSingleUpdate(Float afInterval)
+
+  VampireStopFeedTimer()
+  Parent.RegisterForSingleUpdate(afInterval)
 
 EndFunction
