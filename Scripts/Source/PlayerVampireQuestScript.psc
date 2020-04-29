@@ -190,8 +190,8 @@ Function VampireFeed()
     Feedings += 1
     LastFeedTime = GameDaysPassed.GetValue()
 
-    VampireUpdateRank()
     VampireFeedMessage.Show()
+    VampireUpdateRank()
     VampireProgression(PlayerRef, 1)
   EndIf
 
@@ -572,13 +572,7 @@ EndFunction
 
 Function VampireRegisterForUpdate()
 
-  RegisterForSingleUpdate(UpdateCheckInterval)
-
-EndFunction
-
-Function RegisterForSingleUpdate(Float afInterval)
-
   VampireStopFeedTimer()
-  Parent.RegisterForSingleUpdate(afInterval)
+  RegisterForSingleUpdate(UpdateCheckInterval)
 
 EndFunction
