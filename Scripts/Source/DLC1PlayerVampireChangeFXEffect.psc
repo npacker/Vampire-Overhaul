@@ -1,4 +1,4 @@
-Scriptname DLC1VampireTransformVisual extends ActiveMagicEffect
+Scriptname DLC1PlayerVampireChangeFXEffect extends ActiveMagicEffect
 
 ;-------------------------------------------------------------------------------
 ;
@@ -6,8 +6,14 @@ Scriptname DLC1VampireTransformVisual extends ActiveMagicEffect
 ;
 ;-------------------------------------------------------------------------------
 
-Race Property DLC1VampireLordRace Auto
-{ Vampire Lord race. }
+DLC1PlayerVampireChangeScript Property DLC1PlayerVampireQuest Auto
+{ Vampire Lord control quest. }
+
+Spell Property DLC1VampireChange Auto
+{ Vampire Lord change ability. }
+
+DLC1VampireTrackingQuest Property DLC1VampireLordTrackingQuest Auto
+{ Vampire Lord tracking quest. }
 
 Idle Property IdleVampireLordTransformation Auto
 { Vampire Lord transformation animation. }
@@ -15,14 +21,17 @@ Idle Property IdleVampireLordTransformation Auto
 Explosion Property DLC1VampChangeExplosion Auto
 { Vamire Lord transformation explosion. }
 
+Spell Property DLC1VampireChangeStagger Auto
+{ Vampire Lord transformation stagger. }
+
+Actor Property PlayerRef Auto
+{ The player. }
+
 ;-------------------------------------------------------------------------------
 ;
 ; VARIABLES
 ;
 ;-------------------------------------------------------------------------------
-
-Actor TargetRef
-; Actor to transform.
 
 String SetRaceEvent = "SetRace"
 ; Set Trace animation event name.
@@ -35,18 +44,21 @@ String SetRaceEvent = "SetRace"
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 
-  TargetRef = akTarget
+  PlayerRef.SetGhost(True)
+  RegisterForAnimationEvent(PlayerRef, SetRaceEvent)
 
-  If TargetRef.GetActorBase().GetRace() != DLC1VampireLordRace
-    RegisterForAnimationEvent(TargetRef, SetRaceEvent)
-    TargetRef.PlayIdle(IdleVampireLordTransformation)
+  If !PlayerRef.PlayIdle(IdleVampireLordTransformation)
+    UnregisterForAnimationEvent(PlayerRef, SetRaceEvent)
+    DLC1PlayerVampireQuest.Shutdown()
+    PlayerRef.DispelSpell(DLC1VampireChange)
+    Dispel()
   EndIf
 
 EndEvent
 
 Event OnAnimationEvent(ObjectReference akSource, String asEventName)
 
-  If akSource == TargetRef && asEventName == SetRaceEvent
+  If akSource == PlayerRef && asEventName == SetRaceEvent
     Transform()
   EndIf
 
@@ -63,18 +75,15 @@ Function Transform()
   Transform the actor into the Vampire Lord form.
 }
 
-  UnregisterForAnimationEvent(TargetRef, SetRaceEvent)
-
-  If TargetRef.GetRace() != DLC1VampireLordRace
-    TargetRef.SetRace(DLC1VampireLordRace)
-    TargetRef.PlaceAtMe(DLC1VampChangeExplosion)
-
-    If TargetRef.GetDistance(Game.GetPlayer()) < 300
-      Utility.Wait(0.33)
-      Game.TriggerScreenBlood(5)
-      Utility.Wait(0.1)
-      Game.TriggerScreenBlood(10)
-    EndIf
-  EndIf
+  UnregisterForAnimationEvent(PlayerRef, SetRaceEvent)
+  DLC1VampireLordTrackingQuest.PlayerRace = PlayerRef.GetRace()
+  DLC1PlayerVampireQuest.SetStage(1)
+  PlayerRef.PlaceAtMe(DLC1VampChangeExplosion)
+  DLC1VampireChangeStagger.Cast(PlayerRef, PlayerRef)
+  Utility.Wait(0.33)
+  Game.TriggerScreenBlood(5)
+  Utility.Wait(0.1)
+  Game.TriggerScreenBlood(10)
+  Dispel()
 
 EndFunction

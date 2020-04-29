@@ -590,6 +590,9 @@ Function ActuallyShiftBackIfNecessary()
   ; Disable save and wait while reverting form.
   PreTransformDisablePlayerControls()
 
+  ; Need to be ghosted during the transformation.
+  PlayerRef.SetGhost(True)
+
   ; Unregister for animation events first, because if we don't we could get
   ; a Levitate event after we've set DLC1VampireLevitateStateGlobal to 1, and
   ; the value would be incorrect.
@@ -715,6 +718,9 @@ Function PostRevert()
 
   ShuttingDown = True
 
+  ; Remove ghost status so blood effect spell will play.
+  PlayerRef.SetGhost(False)
+
   ; Apply ending effect shader.
   DLC1VampireLordTrackingQuest.PlayRevertShader()
 
@@ -755,6 +761,9 @@ Function Shutdown()
     SoundMarker.Disable()
     SoundMarker.Delete()
   EndIf
+
+  ; Make sure we're not still ghosted.
+  PlayerRef.SetGhost(False)
 
   ; Remove UI restrictions.
   PlayerRef.RemovePerk(DLC1VampireActivationBlocker)
@@ -1036,6 +1045,8 @@ Function PreTransformDisablePlayerControls()
 EndFunction
 
 Function VampireLordEnablePlayerControls()
+
+  PlayerRef.SetGhost(False)
 
   Game.EnablePlayerControls( \
       abMovement = True, \
