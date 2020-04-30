@@ -34,6 +34,9 @@ EffectShader Property DLC1VampireChangeBack01FXS Auto
 Armor Property DLC1ClothesVampireLordArmor Auto
 { The armor worn by the Vampire Lord. }
 
+Spell Property DLC1VampireRevertFX Auto
+{ Revert shader effect spell. }
+
 Spell Property DLC1AbVampireFloatBodyFX Auto
 {Spell FX Art holder for Levitation Glow.}
 
@@ -722,7 +725,9 @@ Function PostRevert()
   PlayerRef.SetGhost(False)
 
   ; Apply ending effect shader.
-  DLC1VampireLordTrackingQuest.PlayRevertShader()
+  Utility.Wait(0.1)
+  DLC1VampireRevertFX.Cast(PlayerRef)
+  Utility.Wait(0.5)
 
   ; Player should no longer be attacked on sight.
   VampireLordSetHate(False)
