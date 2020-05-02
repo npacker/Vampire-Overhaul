@@ -754,9 +754,6 @@ Function Shutdown()
     SoundMarker.Delete()
   EndIf
 
-  ; Make sure we're not still ghosted.
-  PlayerRef.SetGhost(False)
-
   ; Remove UI restrictions.
   PlayerRef.RemovePerk(DLC1VampireActivationBlocker)
   Game.SetBeastForm(False)
@@ -1021,53 +1018,33 @@ EndFunction
 
 Function PreTransformDisablePlayerControls()
 
-  (PlayerRef.GetBaseObject() as ActorBase).SetInvulnerable(True)
+  Game.DisablePlayerControls( \
+      abCamSwitch = True, \
+      abJournalTabs = True)
 
   Game.SetInChargen(True, True, False)
-
-  Game.DisablePlayerControls( \
-      abMovement = True, \
-      abFighting = True, \
-      abCamSwitch = True, \
-      abMenu = True, \
-      abActivate = True, \
-      abJournalTabs = True, \
-      aiDisablePOVType = 1)
+  (PlayerRef.GetBaseObject() as ActorBase).SetInvulnerable(True)
 
 EndFunction
 
 Function VampireLordEnablePlayerControls()
 
   PlayerRef.SetGhost(False)
-
-  Game.EnablePlayerControls( \
-      abMovement = True, \
-      abFighting = True, \
-      abCamSwitch = False, \
-      abMenu = True, \
-      abActivate = True, \
-      abJournalTabs = True, \
-      aiDisablePOVType = 1)
-
+  (PlayerRef.GetBaseObject() as ActorBase).SetInvulnerable(False)
   Game.SetInChargen(False, False, False)
 
-  (PlayerRef.GetBaseObject() as ActorBase).SetInvulnerable(False)
+  Game.EnablePlayerControls( \
+      abCamSwitch = False)
 
 EndFunction
 
 Function PostRevertEnablePlayerControls()
 
-  Game.EnablePlayerControls( \
-      abMovement = True, \
-      abFighting = True, \
-      abCamSwitch = True, \
-      abMenu = True, \
-      abActivate = True, \
-      abJournalTabs = True, \
-      aiDisablePOVType = 1)
-
+  PlayerRef.SetGhost(False)
+  (PlayerRef.GetBaseObject() as ActorBase).SetInvulnerable(False)
   Game.SetInChargen(False, False, False)
 
-  (PlayerRef.GetBaseObject() as ActorBase).SetInvulnerable(False)
+  Game.EnablePlayerControls( \
+      abCamSwitch = True)
 
 EndFunction
