@@ -44,9 +44,6 @@ Spell Property DLC1AbVampireFloatBodyFX Auto
 ; VAMPIRE TRACKING
 ;-------------------------------------------------------------------------------
 
-PlayerVampireQuestScript Property PlayerVampireQuest Auto
-{ The main player vampire tracking quest. }
-
 DLC1VampireTrackingQuest Property DLC1VampireLordTrackingQuest Auto
 { Quest responsible for tracking the player vampire in Dawnguard. }
 
@@ -256,10 +253,6 @@ ObjectReference SoundMarker
 ;-------------------------------------------------------------------------------
 
 Event OnAnimationEvent(ObjectReference Target, String EventName)
-
-  If Target != PlayerRef
-    Return
-  EndIf
 
   ; TRANSFORM TO HUMAN
   If EventName == TransformToHuman
@@ -668,12 +661,6 @@ Function ActuallyShiftBackIfNecessary()
   PlayerRef.DispelSpell(DLC1VampireDetectLife)
   PlayerRef.DispelSpell(DLC1VampireMistform)
   PlayerRef.DispelSpell(VampireHuntersSight)
-
-  ; Land before transforming back.
-  ; If !PlayerRef.IsSneaking()
-    ; PlayerRef.StartSneaking()
-    ; PlayerRef.WaitForAnimationEvent(Ground)
-  ; EndIf
 
   ; Remove Vampire Lord VFX.
   PlayerRef.RemoveSpell(DLC1AbVampireFloatBodyFX)
