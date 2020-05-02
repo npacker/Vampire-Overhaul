@@ -229,7 +229,6 @@ String Property Levitate = "LevitateStart" Auto
 String Property BiteStart = "BiteStart" Auto
 String Property LiftoffStart = "LiftoffStart" Auto
 String Property LandStart = "LandStart" Auto
-String Property TransformToHuman = "TransformToHuman" Auto
 
 ;-------------------------------------------------------------------------------
 ;
@@ -253,12 +252,6 @@ ObjectReference SoundMarker
 ;-------------------------------------------------------------------------------
 
 Event OnAnimationEvent(ObjectReference Target, String EventName)
-
-  ; TRANSFORM TO HUMAN
-  If EventName == TransformToHuman
-    ActuallyShiftBackIfNecessary()
-  EndIf
-  ; END TRANSFORM TO HUMAN
 
   ; COMBAT BITE
   If EventName == BiteStart
@@ -404,8 +397,6 @@ Function InitialShift()
     If CurrentHealth <= 100
       PlayerRef.RestoreActorValue("health", 101 - CurrentHealth)
     EndIf
-
-    PlayerRef.UnequipItem(DLC1nVampireBloodMagicRingBeast, False, True)
   EndIf
 
   If PlayerRef.isEquipped(DLC1nVampireBloodMagicRingErudite)
@@ -416,8 +407,6 @@ Function InitialShift()
     If CurrentMagicka <= 100
       PlayerRef.RestoreActorValue("magicka", 101 - CurrentMagicka)
     EndIf
-
-    PlayerRef.UnequipItem(DLC1nVampireBloodMagicRingErudite, False, True)
   EndIf
 
   If PlayerRef.isEquipped(DLC1nVampireNightPowerNecklaceBats)
@@ -498,7 +487,7 @@ Function PostChange()
   ; Player won't trigger pressure plates as a Vampire Lord.
   If PlayerRef.HasPerk(Lightfoot)
     DLC1HasLightfoot = True
-  else
+  Else
     DLC1HasLightfoot = False
     PlayerRef.AddPerk(Lightfoot)
   EndIf
@@ -569,7 +558,7 @@ EndFunction
 
 Function ActuallyShiftBackIfNecessary()
 {
-  Called from ShiftBack() and TransformToHuman animation event.
+  Called from ShiftBack().
 }
 
   If ShiftingBack
@@ -625,19 +614,21 @@ Function ActuallyShiftBackIfNecessary()
 
   ; Ensure attributes are at a reasonable level after changing back.
   Float CurrentHealth = PlayerRef.GetActorValue("health")
+
+  If CurrentHealth <= 100
+    PlayerRef.RestoreActorValue("health", 101 - CurrentHealth)
+  EndIf
+
   Float CurrentStamina = PlayerRef.GetActorValue("stamina")
+
+  If CurrentStamina <= 100
+    PlayerRef.RestoreActorValue("stamina", 101 - CurrentStamina)
+  EndIf
+
   Float CurrentMagicka = PlayerRef.GetActorValue("magicka")
 
-  If CurrentHealth < 100
-    PlayerRef.RestoreActorValue("health", 100 - CurrentHealth)
-  EndIf
-
-  If CurrentStamina < 100
-    PlayerRef.RestoreActorValue("stamina", 100 - CurrentStamina)
-  EndIf
-
-  If CurrentMagicka < 100
-    PlayerRef.RestoreActorValue("magicka", 100 - CurrentMagicka)
+  If CurrentMagicka <= 100
+    PlayerRef.RestoreActorValue("magicka", 101 - CurrentMagicka)
   EndIf
 
   ; Clear out perks/abilities.
@@ -645,7 +636,6 @@ Function ActuallyShiftBackIfNecessary()
   PlayerRef.RemoveSpell(LeveledDrainSpell)
   PlayerRef.RemoveSpell(LeveledRaiseDeadSpell)
   PlayerRef.RemoveSpell(LeveledConjureGargoyleSpell)
-
   PlayerRef.RemoveSpell(DLC1CorpseCurse)
   PlayerRef.RemoveSpell(DLC1NightCloak)
   PlayerRef.RemoveSpell(DLC1Revert)
@@ -655,15 +645,11 @@ Function ActuallyShiftBackIfNecessary()
   PlayerRef.RemoveSpell(DLC1VampireLordSunDamage)
   PlayerRef.RemoveSpell(DLC1VampireMistForm)
   PlayerRef.RemoveSpell(DLC1VampiresGrip)
-
   PlayerRef.DispelSpell(DLC1Revert)
   PlayerRef.DispelSpell(DLC1SupernaturalReflexes)
   PlayerRef.DispelSpell(DLC1VampireDetectLife)
   PlayerRef.DispelSpell(DLC1VampireMistform)
   PlayerRef.DispelSpell(VampireHuntersSight)
-
-  ; Remove Vampire Lord VFX.
-  PlayerRef.RemoveSpell(DLC1AbVampireFloatBodyFX)
 
   ; Re-equip vampire items that were equipped before transformation.
   If DLC1nVampireNecklaceBats.GetValue() == 1
@@ -686,6 +672,9 @@ Function ActuallyShiftBackIfNecessary()
   ; Int VampireLordArmorCount = PlayerRef.GetItemCount(DLC1ClothesVampireLordArmor)
   ;
   ; PlayerRef.RemoveItem(DLC1ClothesVampireLordArmor, aiCount = VampireLordArmorCount, abSilent = True)
+
+  ; Remove Vampire Lord VFX.
+  PlayerRef.RemoveSpell(DLC1AbVampireFloatBodyFX)
 
   ; Ensure effect shader is removed.
   DLC1VampireChangeBack01FXS.Stop(PlayerRef)
@@ -711,9 +700,11 @@ Function PostRevert()
   ; Remove ghost status so blood effect spell will play.
   PlayerRef.SetGhost(False)
 
-  ; Apply ending effect shader.
   Utility.Wait(0.1)
+
+  ; Apply ending effect shader.
   DLC1VampireRevertFX.Cast(PlayerRef)
+
   Utility.Wait(0.5)
 
   ; Player should no longer be attacked on sight.
@@ -722,8 +713,7 @@ Function PostRevert()
   ; And you're now recognized.
   Game.SetPlayerReportCrime(True)
 
-  ; We always have to call this in Shutdown, or the spell loaded counts will
-  ; get out of sync.
+  ; Call to avoid spell load counts getting out of sync.
   PlayerRef.RemoveSpell(VampireHuntersSight)
 
   ; Run shutdown tasks.
@@ -768,8 +758,8 @@ EndFunction
 
 Function EstablishLeveledSpells()
 {
-  This function figures out which Drain Spell and Vampire Ability the
-  player should get as a Vampire Lord. It sets the properties LeveledDrainSpell and LeveledAbility.
+  This function figures out which Drain Spell and Vampire Ability the player
+  should get as a Vampire Lord.
 }
 
   Int PlayerLevel = PlayerRef.GetLevel()
@@ -826,9 +816,7 @@ EndFunction
 
 Function CheckPerkSpells()
 {
-  Check to see if we need to add any perk-gated spells. We call this at the
-  initial shift, and again when we enter Levitate mode. The latter because we
-  may have additional perks since we first became a vampire lord.
+  Check to see if we need to add any perk-gated spells.
 }
 
   If PlayerRef.HasPerk(DLC1CorpseCursePerk) \
@@ -933,7 +921,6 @@ Function RegisterForEvents()
   RegisterForAnimationEvent(PlayerRef, BiteStart)
   RegisterForAnimationEvent(PlayerRef, LiftoffStart)
   RegisterForAnimationEvent(PlayerRef, LandStart)
-  RegisterForAnimationEvent(PlayerRef, TransformToHuman)
 
 EndFunction
 
@@ -944,7 +931,6 @@ Function UnregisterForEvents()
   UnRegisterForAnimationEvent(PlayerRef, BiteStart)
   UnRegisterForAnimationEvent(PlayerRef, LiftoffStart)
   UnRegisterForAnimationEvent(PlayerRef, LandStart)
-  UnRegisterForAnimationEvent(PlayerRef, TransformToHuman)
 
   DCL1VampireLevitateStateGlobal.SetValue(1)
 
@@ -1004,8 +990,8 @@ EndFunction
 
 Function UnloadSpells()
 {
-  Unload all of the spells the player could equip.
-  This should be called when we shut the script down.
+  Unload all of the spells the player could equip. This should be called when we
+  shut the script down.
 }
 
   LeveledDrainSpell.Unload()
@@ -1032,9 +1018,7 @@ Function VampireLordEnablePlayerControls()
   PlayerRef.SetGhost(False)
   (PlayerRef.GetBaseObject() as ActorBase).SetInvulnerable(False)
   Game.SetInChargen(False, False, False)
-
-  Game.EnablePlayerControls( \
-      abCamSwitch = False)
+  Game.EnablePlayerControls(abCamSwitch = False)
 
 EndFunction
 
@@ -1043,8 +1027,6 @@ Function PostRevertEnablePlayerControls()
   PlayerRef.SetGhost(False)
   (PlayerRef.GetBaseObject() as ActorBase).SetInvulnerable(False)
   Game.SetInChargen(False, False, False)
-
-  Game.EnablePlayerControls( \
-      abCamSwitch = True)
+  Game.EnablePlayerControls(abCamSwitch = True)
 
 EndFunction
