@@ -48,16 +48,10 @@ DLC1VampireTrackingQuest Property DLC1VampireLordTrackingQuest Auto
 { Quest responsible for tracking the player vampire in Dawnguard. }
 
 Quest Property DialogueGenericVampire Auto
-{
-  Quest that stores additional variables about vampirel lord states such as
-  equipped spells.
-}
+{ Stores additional Vampire Lord state such as equipped spells. }
 
 Perk Property DLC1VampireActivationBlocker Auto
-{
-  Perk that disables activation of various interactable objects while in Vampire
-  Lord form.
-}
+{ Disables activation of some interactable objects while in Vampire Lord form. }
 
 Faction Property DLC1PlayerVampireLordFaction Auto
 { Faction of vampire lords. }
@@ -201,7 +195,7 @@ Message Property DLC1VampirePerkEarned Auto
 { Message displayed when a Vampire Lord perk point is earned. }
 
 Message Property DLC1BloodPointsMsg Auto
-{ Message displayed upon gaining a blood point through combat bite feeding .}
+{ Message displayed upon gaining a blood point through combat bite feeding. }
 
 Float Property DLC1BiteHealthRecover Auto
 { The amount of health recovered from a combat bite. }
@@ -239,7 +233,6 @@ String Property LandStart = "LandStart" Auto
 Bool Prepped = False
 Bool Transformed = False
 Bool TrackingStarted = False
-Bool TryingToShiftBack = False
 Bool ShiftingBack = False
 Bool ShuttingDown = False
 
@@ -253,7 +246,6 @@ ObjectReference SoundMarker
 
 Event OnAnimationEvent(ObjectReference Target, String EventName)
 
-  ; COMBAT BITE
   If EventName == BiteStart
     AdvanceBloodPoints()
 
@@ -263,15 +255,11 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
 
     Game.IncrementStat("Necks Bitten")
   EndIf
-  ; END COMBAT BITE
 
-  ; STARTING TO LAND
   If EventName == LandStart
     DCL1VampireLevitateStateGlobal.SetValue(1)
   EndIf
-  ; END STARTING TO LAND
 
-  ; LANDED
   If EventName == Ground
     DCL1VampireLevitateStateGlobal.SetValue(1)
 
@@ -290,16 +278,12 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
     PlayerRef.RemoveSpell(DlC1CorpseCurse)
     PlayerRef.RemoveSpell(DLC1VampiresGrip)
   EndIf
-  ; END LANDED
 
-  ; LIFTOFF
   If EventName == LiftoffStart
     ; We actually want the glow to start playing at the begining of the takoff anim.
     DCL1VampireLevitateStateGlobal.SetValue(2)
   EndIf
-  ; END LIFTOFF
 
-  ; LEVITATING
   If EventName == Levitate
     DCL1VampireLevitateStateGlobal.SetValue(2)
 
@@ -321,7 +305,6 @@ Event OnAnimationEvent(ObjectReference Target, String EventName)
     PlayerRef.EquipSpell(CurrentEquippedLeftSpell, 0)
     PlayerRef.EquipSpell(LeveledDrainSpell, 1)
   EndIf
-  ; END LEVITATING
 
 EndEvent
 
@@ -333,10 +316,8 @@ EndEvent
 
 Function PrepShift()
 {
-  Called from Stage 0.
-
-  Initiated from DLC1VampireChangeEffectScript in OnEffectStart(), which calls
-  Start() on DLC1PlayerVampireQuest.
+  Called from Stage 0. Initiated from DLC1VampireChangeEffectScript in
+  OnEffectStart(), which calls Start() on DLC1PlayerVampireQuest.
 }
 
   ; Set up grab offset for Vampiric Grip.
@@ -356,7 +337,6 @@ Function PrepShift()
   ; to prevent HandlePlayerLoadGame from calling Preload when we don't need it.
   Prepped = True
 
-  ; Abort if the player has died.
   If PlayerRef.IsDead()
     Return
   EndIf
@@ -369,7 +349,7 @@ Function PrepShift()
   Game.SetBeastForm(True)
   PlayerRef.AddPerk(DLC1VampireActivationBlocker)
 
-  ; Screen effect and sound.
+  ; Apply screen effect and sound.
   VampireChange.Apply()
   VampireIMODSound.Play(PlayerRef)
 
@@ -377,9 +357,7 @@ EndFunction
 
 Function InitialShift()
 {
-  Called from Stage 1.
-
-  Initiated from DLC1VampireTransfromVisual in Transform().
+  Called from Stage 1. Initiated from DLC1VampireTransfromVisual in Transform().
 }
 
   If Transformed
@@ -510,14 +488,13 @@ Function PostChange()
     Game.SendWereWolfTransformation()
   EndIf
 
-  ; But they also don't know that it's you.
+  ; Player does not incur bounties while a Vampire Lord.
   Game.SetPlayerReportCrime(False)
 
   ; Re-enable controls, saving and waiting.
   VampireLordEnablePlayerControls()
 
-  ; We're done with the transformation handling. Player is now free to roam as a
-  ; Vampire Lord.
+  ; Player is now free to roam as a Vampire Lord.
   SetStage(10)
 
 EndFunction
@@ -542,32 +519,17 @@ Function ShiftBack()
   Called from Stage 100.
 }
 
-  If TryingToShiftBack
-    Return
-  EndIf
-
-  TryingToShiftBack = True
-
-  While PlayerRef.GetAnimationVariableBool("bIsSynced")
-    Utility.Wait(0.1)
-  EndWhile
-
-  ActuallyShiftBackIfNecessary()
-
-EndFunction
-
-Function ActuallyShiftBackIfNecessary()
-{
-  Called from ShiftBack().
-}
-
   If ShiftingBack
     Return
   EndIf
 
   ShiftingBack = True
 
-  ; Abort if the player has died.
+  ; Wait for synced animations to complete.
+  While PlayerRef.GetAnimationVariableBool("bIsSynced")
+    Utility.Wait(0.1)
+  EndWhile
+
   If PlayerRef.IsDead()
     Return
   EndIf
@@ -700,11 +662,9 @@ Function PostRevert()
   ; Remove ghost status so blood effect spell will play.
   PlayerRef.SetGhost(False)
 
-  Utility.Wait(0.1)
-
   ; Apply ending effect shader.
+  Utility.Wait(0.1)
   DLC1VampireRevertFX.Cast(PlayerRef)
-
   Utility.Wait(0.5)
 
   ; Player should no longer be attacked on sight.
@@ -758,8 +718,7 @@ EndFunction
 
 Function EstablishLeveledSpells()
 {
-  This function figures out which Drain Spell and Vampire Ability the player
-  should get as a Vampire Lord.
+  Determine which spells and abilities the player should get as a Vampire Lord.
 }
 
   Int PlayerLevel = PlayerRef.GetLevel()
@@ -864,9 +823,7 @@ Function DispelSummons()
     Count -= 1
     Spell SpellToDispel = VampireDispelList.GetAt(Count) as Spell
 
-    If SpellToDispel != None
-      PlayerRef.DispelSpell(SpellToDispel)
-    EndIf
+    PlayerRef.DispelSpell(SpellToDispel)
   EndWhile
 
 EndFunction
@@ -883,7 +840,6 @@ Function VampireLordSetHate(Bool Hate = True)
 
   While Index
     Index -= 1
-
     Faction HateFaction = DLC1VampireHateFactions.GetAt(Index) as Faction
 
     HateFaction.SetEnemy(DLC1PlayerVampireLordFaction)
@@ -915,7 +871,6 @@ EndFunction
 Function RegisterForEvents()
 
   DCL1VampireLevitateStateGlobal.SetValue(1)
-
   RegisterForAnimationEvent(PlayerRef, Ground)
   RegisterForAnimationEvent(PlayerRef, Levitate)
   RegisterForAnimationEvent(PlayerRef, BiteStart)
@@ -931,14 +886,13 @@ Function UnregisterForEvents()
   UnRegisterForAnimationEvent(PlayerRef, BiteStart)
   UnRegisterForAnimationEvent(PlayerRef, LiftoffStart)
   UnRegisterForAnimationEvent(PlayerRef, LandStart)
-
   DCL1VampireLevitateStateGlobal.SetValue(1)
 
 EndFunction
 
 Function HandleEquippedspell(Spell EquippedSpell)
 {
-  Called from DLC1PlayerVampireScript hwen the player equips a spell.
+  Called from DLC1PlayerVampireScript when the player equips a spell.
 }
 
   CurrentEquippedLeftSpell = EquippedSpell
@@ -958,11 +912,11 @@ EndFunction
 
 Function HandlePlayerLoadGame()
 {
-  This function is called from DLC1PlayerVampireScript from the OnPlayerLoadGame
-  event. Since the preloaded state of spells is not saved, we need to balance
-  our Preload calls with Unload calls.
+  Called from DLC1PlayerVampireScript from OnPlayerLoadGame. Since the preloaded
+  state of spells is not saved, we need to balance our Preload calls with Unload
+  calls.
 
-  We only do this after PrepShift has finished. That way we avoid calls to this
+  We only do this if PrepShift has finished. That way we avoid calls to this
   function before or while PrepShift is active, thereby avoiding calling
   PreloadSpells twice.
 }
@@ -977,7 +931,6 @@ Function PreloadSpells()
 {
   Preload all of the spells that could be equipped to the left or right hand.
   This will prevent a delay after EquipSpell before the casting art is loaded.
-  This should be called when we start the script.
 }
 
   LeveledDrainSpell.Preload()
@@ -1004,10 +957,7 @@ EndFunction
 
 Function PreTransformDisablePlayerControls()
 
-  Game.DisablePlayerControls( \
-      abCamSwitch = True, \
-      abJournalTabs = True)
-
+  Game.DisablePlayerControls(abCamSwitch = True, abJournalTabs = True)
   Game.SetInChargen(True, True, False)
   (PlayerRef.GetBaseObject() as ActorBase).SetInvulnerable(True)
 
