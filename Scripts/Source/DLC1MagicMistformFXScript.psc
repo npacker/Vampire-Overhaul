@@ -12,14 +12,7 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
   akTarget.SetGhost(True)
 
   If akCaster == Game.GetPlayer()
-    ; Disable fighting and activating.
-    Game.DisablePlayerControls( \
-        abMovement = False, \
-        abFighting = True, \
-        abCamSwitch = True, \
-        abMenu = True, \
-        abActivate = True, \
-        abJournalTabs = False)
+    Game.DisablePlayerControls(abMovement = False, abCamSwitch = True)
   EndIf
 
   ; Store levitation start value.
@@ -56,14 +49,7 @@ Event OnEffectFinish(Actor akTarget, Actor akCaster)
   akCaster.SetSubGraphFloatVariable("ftoggleBlend", -0.05)
 
   If akCaster == Game.GetPlayer()
-    ; Duplicate of what the DLC1PlayerVampireQuest script runs in Prepshift.
-    Game.EnablePlayerControls( \
-        abMovement = True, \
-        abFighting = True, \
-        abCamSwitch = False, \
-        abMenu = True, \
-        abActivate = True, \
-        abJournalTabs = True)
+    Game.EnablePlayerControls(abCamSwitch = False)
   EndIf
 
   akTarget.SetGhost(False)
