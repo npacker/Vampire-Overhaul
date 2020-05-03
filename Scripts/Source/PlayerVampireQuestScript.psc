@@ -223,23 +223,17 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
       VampireAddLeveledSpell(VampireInvisibilitySpells, VampireRank)
       VampireAddLeveledSpell(VampireRaiseThrallSpells, VampireRank)
       PlayerRef.RemoveSpell(VampireFeralVisage)
-    EndIf
-
-    If VampireStatus == 2
+    ElseIf VampireStatus == 2
       PlayerRef.AddSpell(VampireMesmerizingGaze, False)
       VampireAddLeveledSpell(VampireRaiseThrallSpells, VampireRank)
       PlayerRef.RemoveSpell(VampireFeralVisage)
       VampireRemoveLeveledSpells(VampireInvisibilitySpells)
-    EndIf
-
-    If VampireStatus == 3
+    ElseIf VampireStatus == 3
       PlayerRef.AddSpell(VampireMesmerizingGaze, False)
       PlayerRef.RemoveSpell(VampireFeralVisage)
       VampireRemoveLeveledSpells(VampireInvisibilitySpells)
       VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
-    EndIf
-
-    If VampireStatus == 4
+    ElseIf VampireStatus == 4
       PlayerRef.AddSpell(VampireFeralVisage, False)
       PlayerRef.RemoveSpell(VampireMesmerizingGaze)
       VampireRemoveLeveledSpells(VampireInvisibilitySpells)
@@ -393,8 +387,7 @@ Function VampireSetHate(Bool Hate = True)
 
   While Index
     Index -= 1
-
-    Faction HateFaction = (DLC1VampireHateFactions.GetAt(Index) as Faction)
+    Faction HateFaction = DLC1VampireHateFactions.GetAt(Index) as Faction
 
     HateFaction.SetEnemy(VampirePCFaction)
     HateFaction.SetPlayerEnemy(Hate)
@@ -440,7 +433,6 @@ Function VampireAddLeveledSpell(Spell[] VampireSpells, Int VampireLevel)
 
   While Index > 1
     Index -= 1
-
     Spell VampireSpell = VampireSpells[Index]
 
     If Index == VampireLevel
@@ -449,21 +441,18 @@ Function VampireAddLeveledSpell(Spell[] VampireSpells, Int VampireLevel)
       SpellRemovedLeft = (CurrentEquippedSpellLeft == VampireSpell)
       SpellRemovedRight = (CurrentEquippedSpellRight == VampireSpell)
       SpellRemovedPower = (CurrentEquippedPower == VampireSpell)
-
       PlayerRef.RemoveSpell(VampireSpell)
     EndIf
   EndWhile
 
-  If SpellToAdd
-    PlayerRef.AddSpell(SpellToAdd, False)
+  PlayerRef.AddSpell(SpellToAdd, False)
 
-    If SpellRemovedLeft
-      PlayerRef.EquipSpell(SpellToAdd, 0)
-    ElseIf SpellRemovedRight
-      PlayerRef.EquipSpell(SpellToAdd, 1)
-    ElseIf SpellRemovedPower
-      PlayerRef.EquipSpell(SpellToAdd, 2)
-    EndIf
+  If SpellRemovedLeft
+    PlayerRef.EquipSpell(SpellToAdd, 0)
+  ElseIf SpellRemovedRight
+    PlayerRef.EquipSpell(SpellToAdd, 1)
+  ElseIf SpellRemovedPower
+    PlayerRef.EquipSpell(SpellToAdd, 2)
   EndIf
 
 EndFunction
@@ -524,24 +513,16 @@ EndFunction
 
 Function VampireDisablePlayerControls()
 
+  Game.DisablePlayerControls(abCamSwitch = True, abJournalTabs = True)
   Game.SetInChargen(True, True, False)
   Game.ForceThirdPerson()
-  Game.DisablePlayerControls( \
-      abMovement = True, \
-      abFighting = True, \
-      abCamSwitch = True, \
-      abLooking = False, \
-      abSneaking = True, \
-      abMenu = True, \
-      abActivate = True, \
-      abJournalTabs = True)
 
 EndFunction
 
 Function VampireEnablePlayerControls()
 
-  Game.EnablePlayerControls()
   Game.SetInChargen(False, False, False)
+  Game.EnablePlayerControls()
 
 EndFunction
 
@@ -552,6 +533,7 @@ Bool Function VampireSafeToUpdate()
       && Game.IsMovementControlsEnabled() \
       && !Transforming \
       && !Updating \
+      && !Feeding \
       && !PlayerRef.HasMagicEffect(DLC1VampireChangeEffect)
 
 EndFunction
