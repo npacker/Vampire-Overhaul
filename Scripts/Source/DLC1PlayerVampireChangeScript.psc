@@ -238,6 +238,8 @@ Bool ShuttingDown = False
 
 ObjectReference SoundMarker
 
+Float TransformShaderStart
+
 ;-------------------------------------------------------------------------------
 ;
 ; EVENTS
@@ -665,6 +667,7 @@ Function PostRevert()
   ; Apply ending effect shader.
   Utility.Wait(0.1)
   DLC1VampireRevertFX.Cast(PlayerRef)
+  TransformShaderStart = Utility.GetCurrentRealTime()
   Utility.Wait(0.5)
 
   ; Player should no longer be attacked on sight.
@@ -709,6 +712,15 @@ Function Shutdown()
   Game.SetBeastForm(False)
   Game.ShowFirstPersonGeometry(True)
   Game.EnableFastTravel(True)
+
+  ; Wait for shader to play.
+  If TransformShaderStart
+    While Utility.GetCurrentRealTime() - TransformShaderStart < 3
+      Utility.Wait(0.1)
+    EndWhile
+  EndIf
+
+  ; Enable player controls.
   PostRevertEnablePlayerControls()
 
   ; Stop the quest.
