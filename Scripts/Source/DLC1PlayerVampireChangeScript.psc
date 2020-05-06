@@ -31,11 +31,11 @@ Static Property XMarker Auto
 EffectShader Property DLC1VampireChangeBack01FXS Auto
 { Visual effect for revert form. }
 
+EffectShader Property DLC1VampireChangeBack02FXS Auto
+{ Visual effect for revert form. }
+
 Armor Property DLC1ClothesVampireLordArmor Auto
 { The armor worn by the Vampire Lord. }
-
-Spell Property DLC1VampireRevertFX Auto
-{ Revert shader effect spell. }
 
 Spell Property DLC1AbVampireFloatBodyFX Auto
 {Spell FX Art holder for Levitation Glow.}
@@ -322,11 +322,11 @@ Function PrepShift()
   OnEffectStart(), which calls Start() on DLC1PlayerVampireQuest.
 }
 
-  ; Set up grab offset for Vampiric Grip.
-  PlayerRef.SetActorValue("GrabActorOffset", 70)
-
   ; Dispel summons.
   DispelSummons()
+
+  ; Set up grab offset for Vampiric Grip.
+  PlayerRef.SetActorValue("GrabActorOffset", 70)
 
   ; First, establish our leveled spells. The player cannot level up while
   ; a Vampire Lord so we only need to do this once.
@@ -527,11 +527,6 @@ Function ShiftBack()
 
   ShiftingBack = True
 
-  ; Wait for synced animations to complete.
-  While PlayerRef.GetAnimationVariableBool("bIsSynced")
-    Utility.Wait(0.1)
-  EndWhile
-
   If PlayerRef.IsDead()
     Return
   EndIf
@@ -661,12 +656,9 @@ Function PostRevert()
 
   ShuttingDown = True
 
-  ; Remove ghost status so blood effect spell will play.
-  PlayerRef.SetGhost(False)
-
   ; Apply ending effect shader.
   Utility.Wait(0.1)
-  DLC1VampireRevertFX.Cast(PlayerRef)
+  DLC1VampireChangeBack02FXS.Play(PlayerRef)
   TransformShaderStart = Utility.GetCurrentRealTime()
   Utility.Wait(0.5)
 
@@ -713,11 +705,14 @@ Function Shutdown()
   Game.ShowFirstPersonGeometry(True)
   Game.EnableFastTravel(True)
 
-  ; Wait for shader to play.
+  ; Wait for transform shader to play.
   If TransformShaderStart
     While Utility.GetCurrentRealTime() - TransformShaderStart < 3
       Utility.Wait(0.1)
     EndWhile
+
+    ; Remove the shader.
+    DLC1VampireChangeBack02FXS.Stop(PlayerRef)
   EndIf
 
   ; Enable player controls.
