@@ -658,7 +658,7 @@ Function PostRevert()
 
   ; Apply ending effect shader.
   Utility.Wait(0.1)
-  DLC1VampireChangeBack02FXS.Play(PlayerRef)
+  DLC1VampireChangeBack02FXS.Play(PlayerRef, 0.1)
   TransformShaderStart = Utility.GetCurrentRealTime()
   Utility.Wait(0.5)
 
