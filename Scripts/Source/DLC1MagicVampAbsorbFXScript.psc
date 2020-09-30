@@ -21,7 +21,9 @@ ImageSpaceModifier Property AbsorbRedImod Auto
 ;
 ;-----------------------------------------------------------------------
 
-Float EffectDuration = 40.0
+Float EffectDuration = 10.0
+
+Bool Finishing = False
 
 ;-----------------------------------------------------------------------
 ;
@@ -32,12 +34,19 @@ Float EffectDuration = 40.0
 Event OnEffectStart(Actor Target, Actor Caster)
 
   AbsorbRedImod.Apply()
+
+  If Finishing
+    EffectDuration = 2.0
+  EndIf
+
   AbsorbCastVFX01.Play(Target, EffectDuration, Caster)
   DLC1VampDrainTargetVFX01.Play(Caster, EffectDuration, Target)
 
 EndEvent
 
 Event OnEffectFinish(Actor Target, Actor Caster)
+
+  Finishing = True
 
   AbsorbCastVFX01.Stop(Target)
   DLC1VampDrainTargetVFX01.Stop(Caster)
