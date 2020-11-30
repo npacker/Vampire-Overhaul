@@ -1,4 +1,4 @@
-Scriptname DLC1VampireAmuletGargoyleScript extends ObjectReference
+Scriptname DLC1VampireAmuletGargoyleScript extends DLC1GargoyleSummonScript
 
 GlobalVariable Property DLC1nVampireNecklaceGargoyle Auto
 
@@ -6,13 +6,13 @@ Spell Property SummonGargoyle Auto
 
 Static Property XMarker Auto
 
-Actor Property PlayerRef Auto
-
 ObjectReference CastTarget
 
 Bool Done = False
 
 Event OnLoad()
+
+  Parent.OnLoad()
 
   If DLC1nVampireNecklaceGargoyle.GetValue() == 1 && !Done
     Done = True

@@ -18,7 +18,7 @@ PlayerVampireQuestScript Property PlayerVampireQuest Auto
 ;
 ;-------------------------------------------------------------------------------
 
-Int CurrentVersion = 1001
+Int CurrentVersion = 1002
 
 Int InstalledVersion
 
@@ -50,6 +50,11 @@ Function Update()
   If InstalledVersion < 1001
     ; Update Embrace of Shadows.
     ((Self as Quest) as PlayerVampireUpdate1001).Update(PlayerRef, PlayerVampireQuest)
+  EndIf
+
+  If InstalledVersion < 1002
+    ; Add player to summoned gargoyle faction.
+    ((Self as Quest) as PlayerVampireUpdate1002).Update(PlayerRef, PlayerVampireQuest)
   EndIf
 
   InstalledVersion = CurrentVersion
