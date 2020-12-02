@@ -24,8 +24,8 @@ EffectShader Property DLC1VampireBatsReformFXS auto
 EffectShader Property DLC1VampireBatsReformBATSFXS auto
 
 Float Property TranslationMult = 1.0 Auto
-Float Property TranslationDelay = 0.2 Auto
-Float Property ReformDelay = 0.1 Auto
+Float Property TranslationDelay = 0.1 Auto
+Float Property ReformDelay = 0.2 Auto
 
 ;-------------------------------------------------------------------------------
 ;
@@ -44,6 +44,8 @@ Float LevitationStateFlag = 3.0
 String BatSprintOff = "batSprintOff"
 
 Bool BatsIdleSuccess = False
+
+Bool ContinueEffectLoop = True
 
 ;-------------------------------------------------------------------------------
 ;
@@ -72,15 +74,26 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
       DLC1VampireLevitateStateGlobal.SetValue(LevitationStateFlag)
     EndIf
 
+    Caster.ClearExtraArrows()
     Caster.SetSubGraphFloatVariable("fdampRate", 0.2)
     Caster.SetSubGraphFloatVariable("ftoggleBlend", 1.3)
-    Caster.ClearExtraArrows()
 
     BatsFX = Caster.PlaceAtMe(DLC1VampLordBatsFXActivator)
 
     BatsFX.EnableNoWait(False)
+    RegisterForSingleUpdate(TranslationDelay)
   Else
     Caster.DispelSpell(DLC1VampireBats)
+  EndIf
+
+EndEvent
+
+Event OnUpdate()
+
+  BatsFX.TranslateToRef(Caster, Caster.GetDistance(BatsFX) * TranslationMult)
+
+  If ContinueEffectLoop
+    RegisterForSingleUpdate(TranslationDelay)
   EndIf
 
 EndEvent
@@ -95,17 +108,9 @@ EndEvent
 
 Event OnEffectFinish(Actor akTarget, Actor akCaster)
 
-  UnRegisterForAnimationEvent(Caster, BatSprintOff)
+  UnregisterForAnimationEvent(Caster, BatSprintOff)
 
   If BatsIdleSuccess
-    BatsFX.TranslateToRef(Caster, Caster.GetDistance(BatsFX) * TranslationMult)
-
-    Utility.Wait(ReformDelay)
-
-    If DLC1nVampireNecklaceBats.GetValue() == 1
-      Caster.DispelSpell(DLC1nVampireBatsAmuletSpell)
-    EndIf
-
     If DLC1VampireLevitateStateGlobal.GetValue() == LevitationStateFlag
       DLC1VampireLevitateStateGlobal.SetValue(LevitationStateStartValue)
     EndIf
@@ -118,7 +123,11 @@ Event OnEffectFinish(Actor akTarget, Actor akCaster)
     DLC1VampireBatsReformFXS.Play(Caster, 0.2)
     DLC1VampireBatsReformBATSFXS.Play(Caster, 0.2)
 
-    BatsFX.TranslateToRef(Caster, Caster.GetDistance(BatsFX) * TranslationMult)
+    If DLC1nVampireNecklaceBats.GetValue() == 1
+      Caster.DispelSpell(DLC1nVampireBatsAmuletSpell)
+    EndIf
+
+    ContinueEffectLoop = False
 
     Utility.Wait(TranslationDelay)
 
