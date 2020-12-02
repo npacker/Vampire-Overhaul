@@ -238,7 +238,7 @@ Bool ShuttingDown = False
 
 ObjectReference SoundMarker
 
-Float TransformShaderStart
+Float TransformShaderEnd
 
 ;-------------------------------------------------------------------------------
 ;
@@ -659,7 +659,7 @@ Function PostRevert()
   ; Apply ending effect shader.
   Utility.Wait(0.1)
   DLC1VampireChangeBack02FXS.Play(PlayerRef, 0.1)
-  TransformShaderStart = Utility.GetCurrentRealTime()
+  TransformShaderEnd = Utility.GetCurrentRealTime() + 3.0
   Utility.Wait(0.5)
 
   ; Player should no longer be attacked on sight.
@@ -706,8 +706,8 @@ Function Shutdown()
   Game.EnableFastTravel(True)
 
   ; Wait for transform shader to play.
-  If TransformShaderStart
-    While Utility.GetCurrentRealTime() - TransformShaderStart < 3
+  If TransformShaderEnd
+    While Utility.GetCurrentRealTime() < TransformShaderEnd
       Utility.Wait(0.1)
     EndWhile
 
