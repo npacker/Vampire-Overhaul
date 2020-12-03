@@ -95,6 +95,7 @@ Spell Property VampireBloodMemory Auto
 Spell Property VampireChampionOfTheNight Auto
 Spell Property VampireFeralVisage Auto
 Spell Property VampireHuntersSight Auto
+Spell Property VampireInvisibilityPower Auto
 Spell Property VampireMesmerizingGaze Auto
 Spell Property VampireNightstalker Auto
 
@@ -220,23 +221,23 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
 
     If VampireStatus == 1
       PlayerRef.AddSpell(VampireMesmerizingGaze, False)
-      VampireAddLeveledSpell(VampireInvisibilitySpells, VampireRank)
+      PlayerRef.AddSpell(VampireInvisibilityPower, False)
       VampireAddLeveledSpell(VampireRaiseThrallSpells, VampireRank)
       PlayerRef.RemoveSpell(VampireFeralVisage)
     ElseIf VampireStatus == 2
       PlayerRef.AddSpell(VampireMesmerizingGaze, False)
       VampireAddLeveledSpell(VampireRaiseThrallSpells, VampireRank)
       PlayerRef.RemoveSpell(VampireFeralVisage)
-      VampireRemoveLeveledSpells(VampireInvisibilitySpells)
+      PlayerRef.RemoveSpell(VampireInvisibilityPower)
     ElseIf VampireStatus == 3
       PlayerRef.AddSpell(VampireMesmerizingGaze, False)
       PlayerRef.RemoveSpell(VampireFeralVisage)
-      VampireRemoveLeveledSpells(VampireInvisibilitySpells)
+      PlayerRef.RemoveSpell(VampireInvisibilityPower)
       VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
     ElseIf VampireStatus == 4
       PlayerRef.AddSpell(VampireFeralVisage, False)
       PlayerRef.RemoveSpell(VampireMesmerizingGaze)
-      VampireRemoveLeveledSpells(VampireInvisibilitySpells)
+      PlayerRef.RemoveSpell(VampireInvisibilityPower)
       VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
     EndIf
 
@@ -323,6 +324,7 @@ Function VampireCure(Actor Target)
   PlayerRef.RemoveSpell(DLC1VampireChange)
   PlayerRef.RemoveSpell(VampireBloodMemory)
   PlayerRef.RemoveSpell(VampireChampionOfTheNight)
+  PlayerRef.RemoveSpell(VampireInvisibilityPower)
   PlayerRef.RemoveSpell(VampireMesmerizingGaze)
   PlayerRef.RemoveSpell(VampireNightstalker)
   VampireRemoveLeveledSpells(AbVampireRankSpells)
@@ -332,7 +334,6 @@ Function VampireCure(Actor Target)
   VampireRemoveLeveledSpells(VampireCharmSpells)
   VampireRemoveLeveledSpells(VampireClawsSpells)
   VampireRemoveLeveledSpells(VampireDrainSpells)
-  VampireRemoveLeveledSpells(VampireInvisibilitySpells)
   VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
   VampireRemoveLeveledSpells(VampireSunDamageSpells)
   PlayerRef.DispelSpell(VampireHuntersSight)
