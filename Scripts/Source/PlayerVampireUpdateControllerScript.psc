@@ -18,7 +18,7 @@ PlayerVampireQuestScript Property PlayerVampireQuest Auto
 ;
 ;-------------------------------------------------------------------------------
 
-Int CurrentVersion = 1003
+Int CurrentVersion = 1004
 
 Int InstalledVersion
 
@@ -59,7 +59,11 @@ Function Update()
 
   If InstalledVersion < 1003
     ; Update Embrace of Shadows.
-    ((Self as Quest) as PlayerVampireUpdate1003).Update(PlayerRef, PlayerVampireQuest)
+    ; ((Self as Quest) as PlayerVampireUpdate1003).Update(PlayerRef, PlayerVampireQuest)
+  EndIf
+
+  If InstalledVersion < 1004
+    ((Self as Quest) as PlayerVampireUpdate1004).Update(PlayerRef, PlayerVampireQuest)
   EndIf
 
   InstalledVersion = CurrentVersion
