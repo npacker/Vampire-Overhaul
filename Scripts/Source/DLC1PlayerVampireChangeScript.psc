@@ -697,6 +697,7 @@ Function Shutdown()
   If SoundMarker
     SoundMarker.Disable()
     SoundMarker.Delete()
+    SoundMarker = None
   EndIf
 
   ; Remove UI restrictions.

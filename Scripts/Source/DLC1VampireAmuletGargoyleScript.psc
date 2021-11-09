@@ -30,6 +30,7 @@ Event OnUnload()
   If CastTarget != None
     CastTarget.Disable()
     CastTarget.Delete()
+    CastTarget = None
   EndIf
 
 EndEvent

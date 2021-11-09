@@ -133,6 +133,7 @@ Event OnEffectFinish(Actor akTarget, Actor akCaster)
 
     BatsFX.Disable()
     BatsFX.Delete()
+    BatsFX = None
   EndIf
 
 EndEvent
