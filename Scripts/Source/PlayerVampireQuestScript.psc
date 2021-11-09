@@ -32,6 +32,9 @@ Int Property Feedings Auto Conditional
 Float Property LastFeedTime Auto
 { Last time the player fed as a Vampire. }
 
+Actor Property PlayerRef Auto
+{ The player character. }
+
 GlobalVariable Property PlayerIsVampire Auto
 { Set to 1 if the player is a vampire, 0 otherwiese. }
 
@@ -65,26 +68,14 @@ FormList Property DLC1VampireHateFactions Auto
 Quest Property VC01 Auto
 { Vampire cure quest. }
 
-ImageSpaceModifier Property VampireTransformDecreaseISMD Auto
-{ Vampire feeding and progression image space modifier. }
+Spell Property VampireChangeFXSpell Auto
+{ Vampire transformation visuals spell. }
 
-ImageSpaceModifier Property VampireTransformIncreaseISMD Auto
-{ Initial player vampire transformation image space modifier. }
-
-EffectShader Property VampireChangeFX Auto
-{ Vampire transformation shader. }
-
-ReferenceAlias Property SoundMarkerRef Auto
-{ Refernece Alias for tracking the sound marker. }
-
-Static Property XMarker Auto
-{ Marker at which to play vampire transformation sound. }
-
-Sound Property MAGVampireTransform01 Auto
-{ Vampire transformation sound. }
+Spell Property VampireFeedImodSpell Auto
+{ Vampire feed image space modifier effect. }
 
 MagicEffect Property DLC1VampireChangeEffect Auto
-{ Vampire Lord ability for detecting when player is transforming. }
+{ Vampire Lord ability, for detecting when player is transforming. }
 
 FormList Property VampireImmuneDiseases Auto
 { Diseases to cure after transformation. }
@@ -109,8 +100,6 @@ Spell[] Property VampireInvisibilitySpells Auto
 Spell[] Property VampireRaiseThrallSpells Auto
 Spell[] Property VampireSunDamageSpells Auto
 
-Actor Property PlayerRef Auto
-
 ;-------------------------------------------------------------------------------
 ;
 ; VARIABLES
@@ -124,7 +113,7 @@ Float UpdateCheckInterval = 5.0
 ; The interval at which the feed timer will check if it is safe to update.
 
 Float LastUpdateTime
-; The last VampireProgression() updated VampireStatus.
+; The last time VampireProgression() updated VampireStatus.
 
 Bool Feeding = False
 ; True if player is feeding.
@@ -184,18 +173,21 @@ Function VampireFeed()
   Feeding = True
 
   VampireStopFeedTimer()
-  VampireImageSpaceModifier()
 
-  If VampireStatus > 1
-    Feedings += 1
-    LastFeedTime = GameDaysPassed.GetValue()
+  If VampireStatus > 0
+    VampireImageSpaceModifier()
 
-    VampireFeedMessage.Show()
-    VampireUpdateRank()
-    VampireProgression(PlayerRef, 1)
+    If VampireStatus > 1
+      Feedings += 1
+      LastFeedTime = GameDaysPassed.GetValue()
+
+      VampireFeedMessage.Show()
+      VampireUpdateRank()
+      VampireProgression(PlayerRef, 1)
+    EndIf
+
+    VampireStartFeedTimer()
   EndIf
-
-  VampireStartFeedTimer()
 
   Feeding = False
 
@@ -315,10 +307,11 @@ Function VampireCure(Actor Target)
 
   VampireStopFeedTimer()
   VampireDisablePlayerControls()
-  VampireUpdateRank(Reset = True)
+  VampireStatus = 0
   PlayerIsVampire.SetValue(0)
   VampireFeedReady.SetValue(0)
   VampireSetHate(False)
+  VampireUpdateRank(Reset = True)
   PlayerRef.RemoveSpell(AbVampireChillTouch)
   PlayerRef.RemoveSpell(DLC1VampireChange)
   PlayerRef.RemoveSpell(VampireBloodMemory)
@@ -487,27 +480,13 @@ EndFunction
 
 Function VampireImageSpaceModifier()
 
-  VampireTransformDecreaseISMD.ApplyCrossFade(2.0)
-  Utility.Wait(2.0)
-  ImageSpaceModifier.RemoveCrossFade()
+  VampireFeedImodSpell.Cast(PlayerRef)
 
 EndFunction
 
 Function VampirePlayChange()
 
-  VampireChangeFX.Play(PlayerRef)
-
-  If !SoundMarkerRef.GetReference()
-    SoundMarkerRef.ForceRefTo(PlayerRef.PlaceAtMe(XMarker))
-  Else
-    SoundMarkerRef.GetReference().MoveTo(PlayerRef)
-  EndIf
-
-  VampireTransformIncreaseISMD.ApplyCrossFade(2.0)
-  MAGVampireTransform01.Play(SoundMarkerRef.GetReference())
-  Utility.Wait(2.0)
-  ImageSpaceModifier.RemoveCrossFade()
-  VampireChangeFX.Stop(PlayerRef)
+  VampireChangeFXSpell.Cast(PlayerRef)
 
 EndFunction
 
@@ -531,17 +510,20 @@ Bool Function VampireSafeToUpdate()
   Return Game.IsFastTravelControlsEnabled() \
       && Game.IsFightingControlsEnabled() \
       && Game.IsMovementControlsEnabled() \
+      && !PlayerRef.HasMagicEffect(DLC1VampireChangeEffect) \
       && !Transforming \
       && !Updating \
-      && !Feeding \
-      && !PlayerRef.HasMagicEffect(DLC1VampireChangeEffect)
+      && !Feeding
 
 EndFunction
 
 Function VampireStartFeedTimer()
 
   VampireStopFeedTimer()
-  RegisterForUpdateGameTime(FeedTimerUpdateInterval)
+
+  If VampireStatus > 0
+    RegisterForUpdateGameTime(FeedTimerUpdateInterval)
+  EndIf
 
 EndFunction
 
@@ -555,6 +537,9 @@ EndFunction
 Function VampireRegisterForUpdate()
 
   VampireStopFeedTimer()
-  RegisterForSingleUpdate(UpdateCheckInterval)
+
+  If VampireStatus > 0
+    RegisterForSingleUpdate(UpdateCheckInterval)
+  EndIf
 
 EndFunction
