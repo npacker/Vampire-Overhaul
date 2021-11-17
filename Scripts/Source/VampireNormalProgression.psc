@@ -23,5 +23,17 @@ Function ProvisionAbilities(PlayerVampireQuestScript PlayerVampireQuest)
     PlayerVampireQuest.VampireAddLeveledSpell(PlayerVampireQuest.VampireInvisibilitySpells, VampireRank)
   EndIf
 
+  PlayerRef.AddSpell(PlayerVampireQuest.AbVampireChillTouch, False)
+  PlayerRef.AddSpell(PlayerVampireQuest.VampireBloodMemory, False)
+  PlayerRef.AddSpell(PlayerVampireQuest.VampireChampionOfTheNight, False)
+  PlayerRef.AddSpell(PlayerVampireQuest.VampireNightstalker, False)
+  PlayerVampireQuest.VampireAddLeveledSpell(PlayerVampireQuest.VampireCharmSpells, VampireRank)
+  PlayerVampireQuest.VampireAddLeveledSpell(PlayerVampireQuest.VampireDrainSpells, VampireRank)
+  PlayerVampireQuest.VampireAddLeveledAbility(PlayerVampireQuest.AbVampireRankSpells, VampireRank)
+  PlayerVampireQuest.VampireAddLeveledAbility(PlayerVampireQuest.VampireClawsSpells, VampireRank)
+  PlayerVampireQuest.VampireAddLeveledAbility(PlayerVampireQuest.AbVampireResistanceSpells, 5 - VampireStatus)
+  PlayerVampireQuest.VampireAddLeveledAbility(PlayerVampireQuest.AbVampireStageSpells, VampireStatus)
+  PlayerVampireQuest.VampireAddLeveledAbility(PlayerVampireQuest.AbVampireWeaknessSpells, VampireStatus)
+  PlayerVampireQuest.VampireAddLeveledAbility(PlayerVampireQuest.VampireSunDamageSpells, VampireStatus)
   PlayerRef.RemoveSpell(PlayerVampireQuest.VampireFeralVisage)
 endFunction
