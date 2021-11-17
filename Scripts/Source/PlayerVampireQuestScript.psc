@@ -210,28 +210,8 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
       LastUpdateTime = GameDaysPassed.GetValue()
     EndIf
 
-    If VampireStatus == 1
-      PlayerRef.AddSpell(VampireMesmerizingGaze, False)
-      VampireAddLeveledSpell(VampireInvisibilitySpells, VampireRank)
-      VampireAddLeveledSpell(VampireRaiseThrallSpells, VampireRank)
-      PlayerRef.RemoveSpell(VampireFeralVisage)
-    ElseIf VampireStatus == 2
-      PlayerRef.AddSpell(VampireMesmerizingGaze, False)
-      VampireAddLeveledSpell(VampireRaiseThrallSpells, VampireRank)
-      PlayerRef.RemoveSpell(VampireFeralVisage)
-      VampireRemoveLeveledSpells(VampireInvisibilitySpells)
-    ElseIf VampireStatus == 3
-      PlayerRef.AddSpell(VampireMesmerizingGaze, False)
-      PlayerRef.RemoveSpell(VampireFeralVisage)
-      VampireRemoveLeveledSpells(VampireInvisibilitySpells)
-      VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
-    ElseIf VampireStatus == 4
-      PlayerRef.AddSpell(VampireFeralVisage, False)
-      PlayerRef.RemoveSpell(VampireMesmerizingGaze)
-      VampireRemoveLeveledSpells(VampireInvisibilitySpells)
-      VampireRemoveLeveledSpells(VampireRaiseThrallSpells)
-    EndIf
-
+    VampireProgression VampireProgressionType = (self as Quest) as VampireReverseProgression
+    VampireProgressionType.ProvisionAbilities()
     PlayerRef.AddSpell(AbVampireChillTouch, False)
     PlayerRef.AddSpell(VampireBloodMemory, False)
     PlayerRef.AddSpell(VampireChampionOfTheNight, False)
