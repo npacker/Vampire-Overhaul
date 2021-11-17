@@ -84,24 +84,58 @@ Quest Property VampireProgressionType Auto
 { Controller quest for vampire ability progression. }
 
 Spell Property AbVampireChillTouch Auto
+{ Adds a vanilla ability that deals frost damage on melee hits. }
+
 Spell Property DLC1VampireChange Auto
+{ The Vampire Lord form spell, which should be removed on curinv vampirism. }
+
 Spell Property VampireBloodMemory Auto
+{ Less power that displays how many times the player has fed as a vampire. }
+
 Spell Property VampireChampionOfTheNight Auto
+{ Ability that gives the player extra melee damage at night. }
+
 Spell Property VampireFeralVisage Auto
+{ Reduces the effectiveness of charm spells when the player is at stage 4. }
+
 Spell Property VampireHuntersSight Auto
+{ Vampire night eye or night vision. }
+
 Spell Property VampireMesmerizingGaze Auto
+{ Ability that gives the player increased effectiveness of charm spells. }
+
 Spell Property VampireNightstalker Auto
+{ Ability that allows the player to move silently and with better sneaking. }
 
 Spell[] Property AbVampireRankSpells Auto
+{ Displays what rank of vampirism the player is at. }
+
 Spell[] Property AbVampireResistanceSpells Auto
+{ Resist Frost, Resist Disease, Resist Poison. }
+
 Spell[] Property AbVampireStageSpells Auto
+{ Displays what stage of vamprism the player is at. }
+
 Spell[] Property AbVampireWeaknessSpells Auto
+{ Weakness to Fire. }
+
 Spell[] Property VampireCharmSpells Auto
+{ Vampire's Seduction. }
+
 Spell[] Property VampireClawsSpells Auto
+{ Extra unarmed damage for the player vampire. }
+
 Spell[] Property VampireDrainSpells Auto
+{ Absorb Health . }
+
 Spell[] Property VampireInvisibilitySpells Auto
+{ Embrace of Shadows. }
+
 Spell[] Property VampireRaiseThrallSpells Auto
+{ Vampire's Servant. }
+
 Spell[] Property VampireSunDamageSpells Auto
+{ Weakness to Sunlight. }
 
 ;-------------------------------------------------------------------------------
 ;
