@@ -80,6 +80,9 @@ MagicEffect Property DLC1VampireChangeEffect Auto
 FormList Property VampireImmuneDiseases Auto
 { Diseases to cure after transformation. }
 
+Quest Property VampireProgressionType Auto
+{ Controller quest for vampire ability progression. }
+
 Spell Property AbVampireChillTouch Auto
 Spell Property DLC1VampireChange Auto
 Spell Property VampireBloodMemory Auto
@@ -210,8 +213,7 @@ Function VampireProgression(Actor Target, Int NewStage, Bool Verbose = True)
       LastUpdateTime = GameDaysPassed.GetValue()
     EndIf
 
-    VampireProgression VampireProgressionType = (self as Quest) as VampireReverseProgression
-    VampireProgressionType.ProvisionAbilities()
+    (VampireProgressionType as VampireProgression).ProvisionAbilities(self)
     PlayerRef.AddSpell(AbVampireChillTouch, False)
     PlayerRef.AddSpell(VampireBloodMemory, False)
     PlayerRef.AddSpell(VampireChampionOfTheNight, False)

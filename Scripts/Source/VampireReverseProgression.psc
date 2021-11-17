@@ -1,7 +1,6 @@
 Scriptname VampireReverseProgression extends VampireProgression
 
-Function ProvisionAbilities()
-  PlayerVampireQuestScript PlayerVampireQuest = (self as Quest) as PlayerVampireQuestScript
+Function ProvisionAbilities(PlayerVampireQuestScript PlayerVampireQuest)
   Actor PlayerRef = PlayerVampireQuest.PlayerRef
   int VampireStatus = PlayerVampireQuest.VampireStatus
   int VampireRank = PlayerVampireQuest.VampireRank

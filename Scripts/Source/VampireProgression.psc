@@ -1,4 +1,4 @@
 Scriptname VampireProgression extends Quest Hidden
 
-Function ProvisionAbilities()
+Function ProvisionAbilities(PlayerVampireQuestScript PlayerVampireQuest)
 endFunction
