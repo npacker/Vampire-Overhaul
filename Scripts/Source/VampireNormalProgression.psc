@@ -23,7 +23,6 @@ Function ProvisionAbilities(PlayerVampireQuestScript PlayerVampireQuest)
     PlayerVampireQuest.VampireAddLeveledSpell(PlayerVampireQuest.VampireInvisibilitySpells, VampireRank)
   EndIf
 
-  PlayerRef.AddSpell(PlayerVampireQuest.AbVampireChillTouch, False)
   PlayerRef.AddSpell(PlayerVampireQuest.VampireBloodMemory, False)
   PlayerRef.AddSpell(PlayerVampireQuest.VampireChampionOfTheNight, False)
   PlayerRef.AddSpell(PlayerVampireQuest.VampireNightstalker, False)

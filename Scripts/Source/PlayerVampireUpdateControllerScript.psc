@@ -18,7 +18,7 @@ PlayerVampireQuestScript Property PlayerVampireQuest Auto
 ;
 ;-------------------------------------------------------------------------------
 
-Int CurrentVersion = 1004
+Int CurrentVersion = 1005
 
 Int InstalledVersion
 
@@ -63,7 +63,13 @@ Function Update()
   EndIf
 
   If InstalledVersion < 1004
+    ; Update Embrace of Shadows.
     ((Self as Quest) as PlayerVampireUpdate1004).Update(PlayerRef, PlayerVampireQuest)
+  EndIf
+
+  If InstalledVersion < 1004
+    ; Remove Chill Touch.
+    ((Self as Quest) as PlayerVampireUpdate1005).Update(PlayerRef, PlayerVampireQuest)
   EndIf
 
   InstalledVersion = CurrentVersion

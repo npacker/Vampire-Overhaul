@@ -27,7 +27,6 @@ Function ProvisionAbilities(PlayerVampireQuestScript PlayerVampireQuest)
     PlayerVampireQuest.VampireRemoveLeveledSpells(PlayerVampireQuest.VampireRaiseThrallSpells)
   EndIf
 
-  PlayerRef.AddSpell(PlayerVampireQuest.AbVampireChillTouch, False)
   PlayerRef.AddSpell(PlayerVampireQuest.VampireBloodMemory, False)
   PlayerRef.AddSpell(PlayerVampireQuest.VampireChampionOfTheNight, False)
   PlayerRef.AddSpell(PlayerVampireQuest.VampireNightstalker, False)

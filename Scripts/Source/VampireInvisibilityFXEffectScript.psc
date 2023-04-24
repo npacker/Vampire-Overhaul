@@ -4,11 +4,24 @@ Spell Property VampireInvisibilityFX Auto
 
 GlobalVariable Property VampireInvisibilityActive Auto
 
-Event OnEffectFinish(Actor Target, Actor Caster)
+Auto State InvisibilityActive
 
-  If (VampireInvisibilityActive.GetValue() as Int) == 1
-    VampireInvisibilityFX.Cast(Caster, Target)
-    Utility.Wait(0.1)
-  EndIf
+  Event OnEffectStart(Actor Target, Actor Caster)
+    If (VampireInvisibilityActive.GetValue() as Int) != 1
+      GoToState("InvisibilityExpired")
+    EndIf
+  EndEvent
 
-EndEvent
+  Event OnEffectFinish(Actor Target, Actor Caster)
+    Caster.DoCombatSpellApply(VampireInvisibilityFX, Target)
+  EndEvent
+
+EndState
+
+State InvisibilityExpired
+
+  Event OnBeginState()
+    Dispel()
+  EndEvent
+
+EndState
