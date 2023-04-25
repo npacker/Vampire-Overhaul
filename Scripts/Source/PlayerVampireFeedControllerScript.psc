@@ -84,6 +84,15 @@ Function HandleCombatFeed(Actor Target)
   ; Prevent the target from dying before the animation completes.
   Target.StartDeferredKill()
 
+  ; Position the target in front of the player.
+  Target.MoveTo(PlayerRef, 32.0 * Math.Sin(PlayerRef.GetAngleZ()), 32.0 * Math.Cos(PlayerRef.GetAngleZ()), 0.0, False)
+
+  ; Rotate the target to face the player.
+  Target.SetAngle(Target.GetAngleX(), Target.GetAngleY(), Target.GetAngleZ() + Target.GetHeadingAngle(PlayerRef))
+
+  ; Rotate the player to face the target.
+  PlayerRef.SetAngle(PlayerRef.GetAngleX(), PlayerRef.GetAngleY(), PlayerRef.GetAngleZ() + PlayerRef.GetHeadingAngle(Target))
+
   Float FeedEnd = Utility.GetCurrentRealTime() + FeedDuration
 
   ; Play animation.
@@ -128,6 +137,15 @@ Function HandleCombatBite(Actor Target)
 
   ; Prevent the target from dying before the animation completes.
   Target.StartDeferredKill()
+
+  ; Position the target in front of the player.
+  Target.MoveTo(PlayerRef, 32.0 * Math.Sin(PlayerRef.GetAngleZ()), 32.0 * Math.Cos(PlayerRef.GetAngleZ()), 0.0, False)
+
+  ; Rotate the target to face the player.
+  Target.SetAngle(Target.GetAngleX(), Target.GetAngleY(), Target.GetAngleZ() + Target.GetHeadingAngle(PlayerRef))
+
+  ; Rotate the player to face the target.
+  PlayerRef.SetAngle(PlayerREf.GetAngleX(), PlayerRef.GetAngleY(), PlayerRef.GetAngleZ() + PlayerRef.GetHeadingAngle(Target))
 
   Float FeedEnd = Utility.GetCurrentRealTime() + FeedDuration
 

@@ -5,13 +5,31 @@ GlobalVariable Property DLC1VampireLevitateStateGlobal Auto
 
 Spell Property DLC1VampireMistform Auto
 
+EffectShader Property DLC1VampireMistform02FXS Auto
+EffectShader Property DLC1VampireMistformEnd03FXS Auto
+
+Sound Property MAGPowersMistformInMarker Auto
+Sound Property MAGPowersMistformOutMarker Auto
+
 Float fLevStateStartValue
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 
+  ; Play intro sound.
+  MAGPowersMistformInMarker.Play(akTarget as ObjectReference)
+
+  ; Apply visual FX.
+  DLC1VampireMistform02FXS.Stop(akTarget)
+  DLC1VampireMistform02FXS.Play(akTarget, -1)
+
+  ; Make us immune to damage.
   akTarget.SetGhost(True)
 
-  If akCaster == Game.GetPlayer()
+  ; Make us transparent.
+  akTarget.SetAlpha(0.25, True)
+
+  ; Disable controls if we are the player.
+  If akTarget == Game.GetPlayer()
     Game.DisablePlayerControls(abMovement = False, abCamSwitch = True)
   EndIf
 
@@ -35,10 +53,14 @@ EndEvent
 
 Event OnEffectFinish(Actor akTarget, Actor akCaster)
 
+  ; Dispel this spell.
   akCaster.DispelSpell(DLC1VampireMistform)
 
+  ; Play the outro sound.
+  MAGPowersMistformOutMarker.Play(akTarget as ObjectReference)
+
+  ; Restore levitation state start value.
   If DLC1VampireLevitateStateGlobal.GetValue() == 4.0
-    ; Restore levitation state start value.
     DLC1VampireLevitateStateGlobal.SetValue(fLevStateStartValue)
   EndIf
 
@@ -48,10 +70,18 @@ Event OnEffectFinish(Actor akTarget, Actor akCaster)
   ; Blends between two animations default 0 (0 = there, 1 = gone)
   akCaster.SetSubGraphFloatVariable("ftoggleBlend", -0.05)
 
-  If akCaster == Game.GetPlayer()
+  If akTarget == Game.GetPlayer()
     Game.EnablePlayerControls(abCamSwitch = False)
   EndIf
 
+  ; Play outro vusual FX.
+  DLC1VampireMistform02FXS.Stop(akTarget)
+  DLC1VampireMistformEnd03FXS.Play(akTarget, 0.1)
+
+  ; Remove transparency.
+  akTarget.SetAlpha(1.0, True)
+
+  ; We can take damage again.
   akTarget.SetGhost(False)
 
 EndEvent
