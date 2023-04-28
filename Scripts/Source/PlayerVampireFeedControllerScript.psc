@@ -176,32 +176,29 @@ Function StartVampireFeed()
     Utility.Wait(PauseTime)
   EndWhile
 
-  ; Play the feed animation.
-  If PlayerRef.PlayIdleWithTarget(IdleVampireStandingFront, FeedTarget) \
-      || PlayerRef.PlayIdleWithTarget(IdleVampireStandingBack, FeedTarget) \
-      || PlayerRef.PlayIdleWithTarget(IdleVampireBedrollLeft, FeedTarget) \
-      || PlayerRef.PlayIdleWithTarget(IdleVampireBedrollRight, FeedTarget) \
-      || PlayerRef.PlayIdleWithTarget(IdleVampireBedLeft, FeedTarget) \
-      || PlayerRef.PlayIdleWithTarget(IdleVampireBedRight, FeedTarget) \
-      || PlayerRef.PlayIdleWithTarget(IdleVampireFeedFailsafe, FeedTarget)
-    ; Wait for the animation to start.
-    Utility.Wait(PauseTime)
+  ; Wait for weapon sheating to finish.
+  Utility.Wait(PauseTime)
 
-    ; Check if animation has started.
-    If PlayerRef.GetAnimationVariableBool("bIsSynced")
-      ; Try to register for the vampire feed end event.
-      If RegisterForAnimationEvent(PlayerRef, VampireFeedEnd)
-        ; Register for an update several seconds after the animation should have
-        ; ended, as a failsafe.
-        RegisterForSingleUpdate(FeedMaxTime)
-      Else
-        ; Failed to register for the feed end event, so clean up now.
-        Cleanup()
-      EndIf
+  ; Play the feed animation.
+  PlayerRef.StartVampireFeed(FeedTarget)
+
+  ; Wait for the animation to start.
+  Utility.Wait(PauseTime)
+
+  ; Check if animation has started.
+  If PlayerRef.GetAnimationVariableBool("bIsSynced")
+    ; Try to register for the vampire feed end event.
+    If RegisterForAnimationEvent(PlayerRef, VampireFeedEnd)
+      ; Register for an update several seconds after the animation should have
+      ; ended, as a failsafe.
+      RegisterForSingleUpdate(FeedMaxTime)
     Else
-      ; Feed animation did not play, so clean up now.
+      ; Failed to register for the feed end event, so clean up now.
       Cleanup()
     EndIf
+  Else
+    ; Feed animation did not play, so clean up now.
+    Cleanup()
   EndIf
 
 EndFunction
