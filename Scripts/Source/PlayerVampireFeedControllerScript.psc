@@ -48,27 +48,47 @@ Int Property BiteHealthRestored Auto
 
 ;-------------------------------------------------------------------------------
 ;
+; CONSTANTS
+;
+;-------------------------------------------------------------------------------
+
+String Property VampireFeedEnd = "VampireFeedEnd" AutoReadOnly
+
+String Property PickNewIdle = "PickNewIdle" AutoReadOnly
+
+Float Property FeedMaxTime = 10.0 AutoReadOnly
+
+Float Property PauseTime = 0.1 AutoReadOnly
+
+Float Property BedrollLeftFeedDistance = 54.0 AutoReadOnly
+
+Float Property BedrollRightFeedDistance = 62.0 AutoReadOnly
+
+Float Property BedLeftFeedDistance = 70.0 AutoReadOnly
+
+Float Property BedRightFeedDistance = 67.0 AutoReadOnly
+
+Int Property FEED_SIDE_LEFT = 0 AutoReadOnly
+
+Int Property FEED_SIDE_RIGHT = 1 AutoReadOnly
+
+Int Property FEED_SIDE_BOTH = 2 AutoReadOnly
+
+;-------------------------------------------------------------------------------
+;
 ; VARIABLES
 ;
 ;-------------------------------------------------------------------------------
 
 Actor FeedTarget
 
-String VampireFeedEnd = "VampireFeedEnd"
+Int FeedSideDecision
 
-String PickNewIdle = "PickNewIdle"
+Float FeedDistance
 
-Float FeedMaxTime = 10.0
+Float FeedAngle
 
-Float PauseTime = 0.1
-
-Float SleepingFeedDistance = 62.5
-
-Int FEED_SIDE_LEFT = 0
-
-Int FEED_SIDE_RIGHT = 1
-
-Int FEED_SIDE_BOTH = 2
+Idle FeedAnimation
 
 ;-------------------------------------------------------------------------------
 ;
@@ -94,10 +114,10 @@ EndEvent
 ;
 ;-------------------------------------------------------------------------------
 
-Function HandleFeed(Actor Target)
+Function HandleFeed(Actor akTarget)
 
   ; Set the feed target.
-  FeedTarget = Target
+  FeedTarget = akTarget
 
   ; Do the feed.
   DoNonCombatFeed()
@@ -110,10 +130,10 @@ Function HandleFeed(Actor Target)
 
 EndFunction
 
-Function HandleBite(Actor Target)
+Function HandleBite(Actor akTarget)
 
   ; Set the feed target.
-  FeedTarget = Target
+  FeedTarget = akTarget
 
   ; Do the feed.
   DoNonCombatFeed()
@@ -123,10 +143,10 @@ Function HandleBite(Actor Target)
 
 EndFunction
 
-Function HandleSleepingFeed(Actor Target)
+Function HandleSleepingFeed(Actor akTarget)
 
   ; Set the feed target.
-  FeedTarget = Target
+  FeedTarget = akTarget
 
   ; Do the feed.
   DoSleepingFeed(FEED_SIDE_BOTH)
@@ -139,10 +159,10 @@ Function HandleSleepingFeed(Actor Target)
 
 EndFunction
 
-Function HandleSleepingFeedLeft(Actor Target)
+Function HandleSleepingFeedLeft(Actor akTarget)
 
   ; Set the feed target.
-  FeedTarget = Target
+  FeedTarget = akTarget
 
   ; Do the feed.
   DoSleepingFeed(FEED_SIDE_LEFT)
@@ -155,10 +175,10 @@ Function HandleSleepingFeedLeft(Actor Target)
 
 EndFunction
 
-Function HandleSleepingFeedRight(Actor Target)
+Function HandleSleepingFeedRight(Actor akTarget)
 
   ; Set the feed target.
-  FeedTarget = Target
+  FeedTarget = akTarget
 
   ; Do the feed.
   DoSleepingFeed(FEED_SIDE_RIGHT)
@@ -171,10 +191,10 @@ Function HandleSleepingFeedRight(Actor Target)
 
 EndFunction
 
-Function HandleSleepingBite(Actor Target)
+Function HandleSleepingBite(Actor akTarget)
 
   ; Set the feed target.
-  FeedTarget = Target
+  FeedTarget = akTarget
 
   ; Do the feed.
   DoSleepingFeed(FEED_SIDE_BOTH)
@@ -184,10 +204,10 @@ Function HandleSleepingBite(Actor Target)
 
 EndFunction
 
-Function HandleSleepingBiteLeft(Actor Target)
+Function HandleSleepingBiteLeft(Actor akTarget)
 
   ; Set the feed target.
-  FeedTarget = Target
+  FeedTarget = akTarget
 
   ; Do the feed.
   DoSleepingFeed(FEED_SIDE_LEFT)
@@ -197,10 +217,10 @@ Function HandleSleepingBiteLeft(Actor Target)
 
 EndFunction
 
-Function HandleSleepingBiteRight(Actor Target)
+Function HandleSleepingBiteRight(Actor akTarget)
 
   ; Set the feed target.
-  FeedTarget = Target
+  FeedTarget = akTarget
 
   ; Do the feed.
   DoSleepingFeed(FEED_SIDE_RIGHT)
@@ -210,10 +230,10 @@ Function HandleSleepingBiteRight(Actor Target)
 
 EndFunction
 
-Function HandleCombatFeed(Actor Target)
+Function HandleCombatFeed(Actor akTarget)
 
   ; Set the feed target.
-  FeedTarget = Target
+  FeedTarget = akTarget
 
   ; Do the feed.
   DoCombatFeed()
@@ -229,10 +249,10 @@ Function HandleCombatFeed(Actor Target)
 
 EndFunction
 
-Function HandleCombatBite(Actor Target)
+Function HandleCombatBite(Actor akTarget)
 
   ; Set the feed target.
-  FeedTarget = Target
+  FeedTarget = akTarget
 
   ; Do the feed.
   DoCombatFeed()
@@ -286,24 +306,43 @@ Function StartVampireFeedSleeping(Int aiFeedSide)
   ; Get the bed or bedroll the target is sleeping in.
   ObjectReference SleepFurniture = FeedTarget.GetLinkedRef()
 
-  ; Default to left side.
-  Float FeedAngle = FeedTarget.GetAngleZ() - 90.0
-
-  ; Final feed side.
-  Int FeedSideDecision = FEED_SIDE_LEFT
-
-  ; Update feed angle based on furniture entry direction and/or player position.
   If aiFeedSide == FEED_SIDE_RIGHT || aiFeedSide == FEED_SIDE_BOTH && FeedTarget.GetHeadingAngle(PlayerRef) > 0.0
     ; Feed from right side.
-    FeedAngle = FeedTarget.GetAngleZ() + 90.0
     FeedSideDecision = FEED_SIDE_RIGHT
+
+    ; Set right side feed angle.
+    FeedAngle = FeedTarget.GetAngleZ() + 90.0
+
+    ; Choose left side animation.
+    If SleepFurniture.HasKeyword(FurnitureBedroll)
+      FeedDistance = BedrollRightFeedDistance
+      FeedAnimation = VampireFeedingBedrollRight_Loose
+    Else
+      FeedDistance = BedRightFeedDistance
+      FeedAnimation = VampireFeedingBedRight_Loose
+    EndIf
+  Else
+    ; Feed from left side.
+    FeedSideDecision = FEED_SIDE_LEFT
+
+    ; Set left side feed angle.
+    FeedAngle = FeedTarget.GetAngleZ() - 90.0
+
+    ; Choose right side animation.
+    If SleepFurniture.HasKeyword(FurnitureBedroll)
+      FeedDistance = BedrollLeftFeedDistance
+      FeedAnimation = VampireFeedingBedrollLeft_Loose
+    Else
+      FeedDistance = BedLeftFeedDistance
+      FeedAnimation = VampireFeedingBedLeft_Loose
+    EndIf
   EndIf
 
   ; Create feed marker.
   ObjectReference FeedMarker = FeedTarget.PlaceAtMe(XMarker)
 
   ; Set feed marker position.
-  FeedMarker.MoveTo(FeedTarget, SleepingFeedDistance * Math.sin(FeedAngle), SleepingFeedDistance * Math.cos(FeedAngle), 0.0, abMatchRotation = False)
+  FeedMarker.MoveTo(FeedTarget, FeedDistance * Math.sin(FeedAngle), FeedDistance * Math.cos(FeedAngle), 0.0, abMatchRotation = False)
 
   ; Set feed marker rotation.
   FeedMarker.SetAngle(FeedMarker.GetAngleX(), FeedMarker.GetAngleY(), FeedMarker.GetAngleZ() + FeedMarker.GetHeadingAngle(FeedTarget))
@@ -316,48 +355,22 @@ Function StartVampireFeedSleeping(Int aiFeedSide)
   FeedMarker.Delete()
 
   ; Play the feed animation.
-  If SleepFurniture.HasKeyword(FurnitureBedroll)
-    If FeedSideDecision == FEED_SIDE_LEFT
-      If PlayerRef.PlayIdle(VampireFeedingBedrollLeft_Loose)
-        ; Debug.TraceAndBox("VampireFeedingBedrollLeft_Loose")
-      ElseIf PlayerRef.PlayIdle(IdleVampireFeedFailsafe)
-        ; Debug.TraceAndBox("IdleVampireFeedFailsafe")
-      EndIf
-    Else
-      If PlayerRef.PlayIdle(VampireFeedingBedrollRight_Loose)
-        ; Debug.TraceAndBox("VampireFeedingBedrollRight_Loose")
-      ElseIf PlayerRef.PlayIdle(IdleVampireFeedFailsafe)
-        ; Debug.TraceAndBox("IdleVampireFeedFailsafe")
-      EndIf
-    EndIf
-  Else
-    If FeedSideDecision == FEED_SIDE_LEFT
-      If PlayerRef.PlayIdle(VampireFeedingBedLeft_Loose)
-        ; Debug.TraceAndBox("VampireFeedingBedLeft_Loose")
-      ElseIf PlayerRef.PlayIdle(IdleVampireFeedFailsafe)
-        ; Debug.TraceAndBox("IdleVampireFeedFailsafe")
-      EndIf
-    Else
-      If PlayerRef.PlayIdle(VampireFeedingBedRight_Loose)
-        ; Debug.TraceAndBox("VampireFeedingBedRight_Loose")
-      ElseIf PlayerRef.PlayIdle(IdleVampireFeedFailsafe)
-        ; Debug.TraceAndBox("IdleVampireFeedFailsafe")
-      EndIf
-    EndIf
-  EndIf
+  If PlayerRef.PlayIdle(FeedAnimation)
+    ; Wait for animation to start.
+    Utility.Wait(PauseTime)
 
-  ; Wait for animation to start.
-  Utility.Wait(PauseTime)
-
-  ; Check if animation has started.
-  If PlayerRef.GetAnimationVariableBool("bAnimationDriven") && !PlayerRef.GetAnimationVariableBool("bEquipOK")
-    ; Try to register for the vampire feed end event.
-    If RegisterForAnimationEvent(PlayerRef, PickNewIdle)
-      ; Register for an update several seconds after the animation should have
-      ; ended, as a failsafe.
-      RegisterForSingleUpdate(FeedMaxTime)
+    ; Check if animation has started.
+    If PlayerRef.GetAnimationVariableBool("bAnimationDriven") && !PlayerRef.GetAnimationVariableBool("bEquipOK")
+      ; Try to register for the vampire feed end event.
+      If RegisterForAnimationEvent(PlayerRef, PickNewIdle)
+        ; Register for failsafe update after animation should end.
+        RegisterForSingleUpdate(FeedMaxTime)
+      Else
+        ; Failed to register for feed end event, so clean up now.
+        Cleanup()
+      EndIf
     Else
-      ; Failed to register for the feed end event, so clean up now.
+      ; Feed animation did not play, so clean up now.
       Cleanup()
     EndIf
   Else
@@ -377,26 +390,22 @@ Function StartVampireFeed()
   PreparePlayerToFeed()
 
   ; Play feed animation.
-  If PlayerRef.PlayIdleWithTarget(IdleVampireStandingFront, FeedTarget)
-    ; Debug.TraceAndBox("IdleVampireStandingFront")
-  ElseIf PlayerRef.PlayIdleWithTarget(IdleVampireStandingBack, FeedTarget)
-    ; Debug.TraceAndBox("IdleVampireStandingBack")
-  ElseIf PlayerRef.PlayIdle(IdleVampireFeedFailsafe)
-    ; Debug.TraceAndBox("IdleVampireFeedFailsafe")
-  EndIf
+  If PlayerRef.PlayIdleWithTarget(IdleVampireStandingFront, FeedTarget) || PlayerRef.PlayIdleWithTarget(IdleVampireStandingBack, FeedTarget)
+    ; Wait for animation to start.
+    Utility.Wait(PauseTime)
 
-  ; Wait for animation to start.
-  Utility.Wait(PauseTime)
-
-  ; Check if animation has started.
-  If PlayerRef.GetAnimationVariableBool("bIsSynced")
-    ; Try to register for the vampire feed end event.
-    If RegisterForAnimationEvent(PlayerRef, VampireFeedEnd)
-      ; Register for an update several seconds after the animation should have
-      ; ended, as a failsafe.
-      RegisterForSingleUpdate(FeedMaxTime)
+    ; Check if animation has started.
+    If PlayerRef.GetAnimationVariableBool("bIsSynced")
+      ; Try to register for the vampire feed end event.
+      If RegisterForAnimationEvent(PlayerRef, VampireFeedEnd)
+        ; Register for failsafe update after animation should end.
+        RegisterForSingleUpdate(FeedMaxTime)
+      Else
+        ; Failed to register for the feed end event, so clean up now.
+        Cleanup()
+      EndIf
     Else
-      ; Failed to register for the feed end event, so clean up now.
+      ; Feed animation did not play, so clean up now.
       Cleanup()
     EndIf
   Else
