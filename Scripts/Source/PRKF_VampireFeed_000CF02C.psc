@@ -1,35 +1,19 @@
 ;BEGIN FRAGMENT CODE - Do not edit anything between this and the end comment
-;NEXT FRAGMENT INDEX 11
+;NEXT FRAGMENT INDEX 28
 Scriptname PRKF_VampireFeed_000CF02C Extends Perk Hidden
 
-;BEGIN FRAGMENT Fragment_1
-Function Fragment_1(ObjectReference akTargetRef, Actor akActor)
+;BEGIN FRAGMENT Fragment_24
+Function Fragment_24(ObjectReference akTargetRef, Actor akActor)
 ;BEGIN CODE
-PlayerVampireFeedController.HandleFeed(akTargetRef as Actor)
+PlayerVampireFeedController.HandleSleepingBiteRight(akTargetRef as Actor)
 ;END CODE
 EndFunction
 ;END FRAGMENT
 
-;BEGIN FRAGMENT Fragment_2
-Function Fragment_2(ObjectReference akTargetRef, Actor akActor)
+;BEGIN FRAGMENT Fragment_21
+Function Fragment_21(ObjectReference akTargetRef, Actor akActor)
 ;BEGIN CODE
-PlayerVampireFeedController.HandleFeed(akTargetRef as Actor)
-;END CODE
-EndFunction
-;END FRAGMENT
-
-;BEGIN FRAGMENT Fragment_3
-Function Fragment_3(ObjectReference akTargetRef, Actor akActor)
-;BEGIN CODE
-PlayerVampireFeedController.HandleBite(akTargetRef as Actor)
-;END CODE
-EndFunction
-;END FRAGMENT
-
-;BEGIN FRAGMENT Fragment_4
-Function Fragment_4(ObjectReference akTargetRef, Actor akActor)
-;BEGIN CODE
-PlayerVampireFeedController.HandleBite(akTargetRef as Actor)
+PlayerVampireFeedController.HandleSleepingBiteLeft(akTargetRef as Actor)
 ;END CODE
 EndFunction
 ;END FRAGMENT
@@ -42,10 +26,58 @@ PlayerVampireFeedController.HandleCombatBite(akTargetRef as Actor)
 EndFunction
 ;END FRAGMENT
 
+;BEGIN FRAGMENT Fragment_14
+Function Fragment_14(ObjectReference akTargetRef, Actor akActor)
+;BEGIN CODE
+PlayerVampireFeedController.HandleBite(akTargetRef as Actor)
+;END CODE
+EndFunction
+;END FRAGMENT
+
+;BEGIN FRAGMENT Fragment_2
+Function Fragment_2(ObjectReference akTargetRef, Actor akActor)
+;BEGIN CODE
+PlayerVampireFeedController.HandleFeed(akTargetRef as Actor)
+;END CODE
+EndFunction
+;END FRAGMENT
+
+;BEGIN FRAGMENT Fragment_17
+Function Fragment_17(ObjectReference akTargetRef, Actor akActor)
+;BEGIN CODE
+PlayerVampireFeedController.HandleFeed(akTargetRef as Actor)
+;END CODE
+EndFunction
+;END FRAGMENT
+
+;BEGIN FRAGMENT Fragment_1
+Function Fragment_1(ObjectReference akTargetRef, Actor akActor)
+;BEGIN CODE
+PlayerVampireFeedController.HandleSleepingFeedLeft(akTargetRef as Actor)
+;END CODE
+EndFunction
+;END FRAGMENT
+
 ;BEGIN FRAGMENT Fragment_6
 Function Fragment_6(ObjectReference akTargetRef, Actor akActor)
 ;BEGIN CODE
 PlayerVampireFeedController.HandleCombatFeed(akTargetRef as Actor)
+;END CODE
+EndFunction
+;END FRAGMENT
+
+;BEGIN FRAGMENT Fragment_26
+Function Fragment_26(ObjectReference akTargetRef, Actor akActor)
+;BEGIN CODE
+PlayerVampireFeedController.HandleSleepingFeedRight(akTargetRef as Actor)
+;END CODE
+EndFunction
+;END FRAGMENT
+
+;BEGIN FRAGMENT Fragment_4
+Function Fragment_4(ObjectReference akTargetRef, Actor akActor)
+;BEGIN CODE
+PlayerVampireFeedController.HandleBite(akTargetRef as Actor)
 ;END CODE
 EndFunction
 ;END FRAGMENT

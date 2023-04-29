@@ -14,6 +14,12 @@ Actor Property PlayerRef Auto
 
 Static Property XMarker Auto
 
+Keyword Property FurnitureBedroll Auto
+
+FormList Property FurnitureBedrollList Auto
+
+FormList Property FurnitureBedList Auto
+
 Idle Property IdleVampireStandingFront Auto
 
 Idle Property IdleVampireStandingBack Auto
@@ -27,6 +33,14 @@ Idle Property IdleVampireBedLeft Auto
 Idle Property IdleVampireBedRight Auto
 
 Idle Property IdleVampireFeedFailsafe Auto
+
+Idle Property VampireFeedingBedrollLeft_Loose Auto
+
+Idle Property VampireFeedingBedrollRight_Loose Auto
+
+Idle Property VampireFeedingBedLeft_Loose Auto
+
+Idle Property VampireFeedingBedRight_Loose Auto
 
 Int Property FeedHealthRestored Auto
 
@@ -42,9 +56,13 @@ Actor FeedTarget
 
 String VampireFeedEnd = "VampireFeedEnd"
 
+String PickNewIdle = "PickNewIdle"
+
 Float FeedMaxTime = 10.0
 
 Float PauseTime = 0.1
+
+Float SleepingFeedDistance = 62.5
 
 ;-------------------------------------------------------------------------------
 ;
@@ -54,9 +72,7 @@ Float PauseTime = 0.1
 
 Event OnAnimationEvent(ObjectReference Source, String EventName)
 
-  If Source == PlayerRef && EventName == VampireFeedEnd
-    Cleanup()
-  EndIf
+  Cleanup()
 
 EndEvent
 
@@ -95,6 +111,64 @@ Function HandleBite(Actor Target)
 
   ; Do the feed.
   DoNonCombatFeed()
+
+  ; Increment necks bitten stat.
+  Game.IncrementStat("Necks Bitten")
+
+EndFunction
+
+Function HandleSleepingFeedLeft(Actor Target)
+
+  ; Set the feed target.
+  FeedTarget = Target
+
+  ; Do the feed.
+  DoSleepingFeed()
+
+  ; Feed the player.
+  PlayerVampireQuest.VampireFeed()
+
+  ; Increment necks bitten stat.
+  Game.IncrementStat("Necks Bitten")
+
+EndFunction
+
+Function HandleSleepingFeedRight(Actor Target)
+
+  ; Set the feed target.
+  FeedTarget = Target
+
+  ; Do the feed.
+  DoSleepingFeed(abLeft = False)
+
+  ; Feed the player.
+  PlayerVampireQuest.VampireFeed()
+
+  ; Increment necks bitten stat.
+  Game.IncrementStat("Necks Bitten")
+
+EndFunction
+
+Function HandleSleepingBiteLeft(Actor Target)
+
+  ; Set the feed target.
+  FeedTarget = Target
+
+  ; Do the feed.
+  DoSleepingFeed()
+
+  ; Increment necks bitten stat.
+  Game.IncrementStat("Necks Bitten")
+
+EndFunction
+
+Function HandleSleepingBiteRight(Actor Target)
+
+  ; Set the feed target.
+  FeedTarget = Target
+
+  ; Do the feed.
+  DoSleepingFeed(abLeft = False)
 
   ; Increment necks bitten stat.
   Game.IncrementStat("Necks Bitten")
@@ -146,6 +220,16 @@ Function DoNonCombatFeed()
 
 EndFunction
 
+Function DoSleepingFeed(Bool abLeft = True)
+
+  ; Trigger vampire transformation quest.
+  DLC1VampireTurn.PlayerBitesMe(FeedTarget)
+
+  ; Do the feed.
+  StartVampireFeedSleeping(abLeft)
+
+EndFunction
+
 Function DoCombatFeed()
 
   ; Prevent the target from dying before the animation completes.
@@ -159,30 +243,109 @@ Function DoCombatFeed()
 
 EndFunction
 
+Function StartVampireFeedSleeping(Bool abLeft = True)
+
+  ; Prepare the player to feed.
+  PreparePlayerToFeed()
+
+  ; Get the bed or bedroll the target is sleeping in.
+  ObjectReference SleepFurniture = FeedTarget.GetLinkedRef()
+
+  ; Assume feeding will be from the left side.
+  Float FeedAngle = FeedTarget.GetAngleZ() - 90.0
+
+  ; Swap the feed angle if we are on the right.
+  If !abLeft
+    FeedAngle = FeedTarget.GetAngleZ() + 90.0
+  EndIf
+
+  ; Create feed marker.
+  ObjectReference FeedMarker = FeedTarget.PlaceAtMe(XMarker)
+
+  ; Set feed marker position.
+  FeedMarker.MoveTo(FeedTarget, SleepingFeedDistance * Math.sin(FeedAngle), SleepingFeedDistance * Math.cos(FeedAngle), 0.0, abMatchRotation = False)
+
+  ; Set feed marker rotation.
+  FeedMarker.SetAngle(FeedMarker.GetAngleX(), FeedMarker.GetAngleY(), FeedMarker.GetAngleZ() + FeedMarker.GetHeadingAngle(FeedTarget))
+
+  ; Move player into position.
+  PlayerRef.MoveTo(FeedMarker, 0.0, 0.0, 0.0, abMatchRotation = True)
+
+  ; Clean up feed marker.
+  FeedMarker.DisableNoWait()
+  FeedMarker.Delete()
+
+  ; Play the feed animation.
+  If SleepFurniture.HasKeyword(FurnitureBedroll)
+    If abLeft
+      If PlayerRef.PlayIdle(VampireFeedingBedrollLeft_Loose)
+        ; Debug.TraceAndBox("VampireFeedingBedrollLeft_Loose")
+      ElseIf PlayerRef.PlayIdle(IdleVampireFeedFailsafe)
+        ; Debug.TraceAndBox("IdleVampireFeedFailsafe")
+      EndIf
+    Else
+      If PlayerRef.PlayIdle(VampireFeedingBedrollRight_Loose)
+        ; Debug.TraceAndBox("VampireFeedingBedrollRight_Loose")
+      ElseIf PlayerRef.PlayIdle(IdleVampireFeedFailsafe)
+        ; Debug.TraceAndBox("IdleVampireFeedFailsafe")
+      EndIf
+    EndIf
+  Else
+    If abLeft
+      If PlayerRef.PlayIdle(VampireFeedingBedLeft_Loose)
+        ; Debug.TraceAndBox("VampireFeedingBedLeft_Loose")
+      ElseIf PlayerRef.PlayIdle(IdleVampireFeedFailsafe)
+        ; Debug.TraceAndBox("IdleVampireFeedFailsafe")
+      EndIf
+    Else
+      If PlayerRef.PlayIdle(VampireFeedingBedRight_Loose)
+        ; Debug.TraceAndBox("VampireFeedingBedRight_Loose")
+      ElseIf PlayerRef.PlayIdle(IdleVampireFeedFailsafe)
+        ; Debug.TraceAndBox("IdleVampireFeedFailsafe")
+      EndIf
+    EndIf
+  EndIf
+
+  ; Wait for animation to start.
+  Utility.Wait(PauseTime)
+
+  ; Check if animation has started.
+  If PlayerRef.GetAnimationVariableBool("bAnimationDriven") && !PlayerRef.GetAnimationVariableBool("bEquipOK")
+    ; Try to register for the vampire feed end event.
+    If RegisterForAnimationEvent(PlayerRef, PickNewIdle)
+      ; Register for an update several seconds after the animation should have
+      ; ended, as a failsafe.
+      RegisterForSingleUpdate(FeedMaxTime)
+    Else
+      ; Failed to register for the feed end event, so clean up now.
+      Cleanup()
+    EndIf
+  Else
+    ; Feed animation did not play, so clean up now.
+    Cleanup()
+  EndIf
+
+EndFunction
+
 Function StartVampireFeed()
 
-  ; Restrain the target.
+  ; Restrain target.
   FeedTarget.SetDontMove()
   FeedTarget.SetRestrained()
 
-  ; Allow the player to respond to AI commands.
-  Game.SetPlayerAIDriven()
+  ; Prepare player to feed.
+  PreparePlayerToFeed()
 
-  ; Sheathe player weapons.
-  PlayerRef.SheatheWeapon()
+  ; Play feed animation.
+  If PlayerRef.PlayIdleWithTarget(IdleVampireStandingFront, FeedTarget)
+    ; Debug.TraceAndBox("IdleVampireStandingFront")
+  ElseIf PlayerRef.PlayIdleWithTarget(IdleVampireStandingBack, FeedTarget)
+    ; Debug.TraceAndBox("IdleVampireStandingBack")
+  ElseIf PlayerRef.PlayIdle(IdleVampireFeedFailsafe)
+    ; Debug.TraceAndBox("IdleVampireFeedFailsafe")
+  EndIf
 
-  ; Wait for player to sheathe weapons.
-  While PlayerRef.IsWeaponDrawn()
-    Utility.Wait(PauseTime)
-  EndWhile
-
-  ; Wait for weapon sheating to finish.
-  Utility.Wait(PauseTime)
-
-  ; Play the feed animation.
-  PlayerRef.StartVampireFeed(FeedTarget)
-
-  ; Wait for the animation to start.
+  ; Wait for animation to start.
   Utility.Wait(PauseTime)
 
   ; Check if animation has started.
@@ -203,19 +366,44 @@ Function StartVampireFeed()
 
 EndFunction
 
+Function PreparePlayerToFeed()
+
+  ; Allow player to respond to AI commands.
+  Game.SetPlayerAIDriven()
+
+  ; Disable player controls.
+  Game.DisablePlayerControls(abMovement = True, abFighting = True, abCamSwitch = True, abActivate = True)
+
+  ; Force third person.
+  Game.ForceThirdPerson()
+
+  ; Sheathe player weapons.
+  PlayerRef.SheatheWeapon()
+
+  ; Wait for player to sheathe weapons.
+  While PlayerRef.IsWeaponDrawn()
+    Utility.Wait(PauseTime)
+  EndWhile
+
+  ; Wait for weapon sheathing to finish.
+  Utility.Wait(PauseTime)
+
+EndFunction
+
 Function Cleanup()
 
   ; Unregister for failsafe update.
   UnregisterForUpdate()
+
+  ; Unregister for feed end animation event.
+  UnregisterForAnimationEvent(PlayerRef, VampireFeedEnd)
+  UnregisterForAnimationEvent(PlayerRef, PickNewIdle)
 
   ; The player is no longer AI-controlled.
   Game.SetPlayerAIDriven(False)
 
   ; Enable player controls.
   Game.EnablePlayerControls()
-
-  ; Unregister for feed end animation event.
-  UnregisterForAnimationEvent(PlayerRef, VampireFeedEnd)
 
   ; End deferred kill state on the target.
   FeedTarget.EndDeferredKill()
