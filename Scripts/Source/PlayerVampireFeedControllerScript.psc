@@ -64,6 +64,12 @@ Float PauseTime = 0.1
 
 Float SleepingFeedDistance = 62.5
 
+Int FEED_SIDE_LEFT = 0
+
+Int FEED_SIDE_RIGHT = 1
+
+Int FEED_SIDE_BOTH = 2
+
 ;-------------------------------------------------------------------------------
 ;
 ; EVENTS
@@ -117,13 +123,29 @@ Function HandleBite(Actor Target)
 
 EndFunction
 
+Function HandleSleepingFeed(Actor Target)
+
+  ; Set the feed target.
+  FeedTarget = Target
+
+  ; Do the feed.
+  DoSleepingFeed(FEED_SIDE_BOTH)
+
+  ; Feed the player.
+  PlayerVampireQuest.VampireFeed()
+
+  ; Increment necks bitten stat.
+  Game.IncrementStat("Necks Bitten")
+
+EndFunction
+
 Function HandleSleepingFeedLeft(Actor Target)
 
   ; Set the feed target.
   FeedTarget = Target
 
   ; Do the feed.
-  DoSleepingFeed()
+  DoSleepingFeed(FEED_SIDE_LEFT)
 
   ; Feed the player.
   PlayerVampireQuest.VampireFeed()
@@ -139,10 +161,23 @@ Function HandleSleepingFeedRight(Actor Target)
   FeedTarget = Target
 
   ; Do the feed.
-  DoSleepingFeed(abLeft = False)
+  DoSleepingFeed(FEED_SIDE_RIGHT)
 
   ; Feed the player.
   PlayerVampireQuest.VampireFeed()
+
+  ; Increment necks bitten stat.
+  Game.IncrementStat("Necks Bitten")
+
+EndFunction
+
+Function HandleSleepingBite(Actor Target)
+
+  ; Set the feed target.
+  FeedTarget = Target
+
+  ; Do the feed.
+  DoSleepingFeed(FEED_SIDE_BOTH)
 
   ; Increment necks bitten stat.
   Game.IncrementStat("Necks Bitten")
@@ -155,7 +190,7 @@ Function HandleSleepingBiteLeft(Actor Target)
   FeedTarget = Target
 
   ; Do the feed.
-  DoSleepingFeed()
+  DoSleepingFeed(FEED_SIDE_LEFT)
 
   ; Increment necks bitten stat.
   Game.IncrementStat("Necks Bitten")
@@ -168,7 +203,7 @@ Function HandleSleepingBiteRight(Actor Target)
   FeedTarget = Target
 
   ; Do the feed.
-  DoSleepingFeed(abLeft = False)
+  DoSleepingFeed(FEED_SIDE_RIGHT)
 
   ; Increment necks bitten stat.
   Game.IncrementStat("Necks Bitten")
@@ -220,13 +255,13 @@ Function DoNonCombatFeed()
 
 EndFunction
 
-Function DoSleepingFeed(Bool abLeft = True)
+Function DoSleepingFeed(Int aiFeedSide)
 
   ; Trigger vampire transformation quest.
   DLC1VampireTurn.PlayerBitesMe(FeedTarget)
 
   ; Do the feed.
-  StartVampireFeedSleeping(abLeft)
+  StartVampireFeedSleeping(aiFeedSide)
 
 EndFunction
 
@@ -243,7 +278,7 @@ Function DoCombatFeed()
 
 EndFunction
 
-Function StartVampireFeedSleeping(Bool abLeft = True)
+Function StartVampireFeedSleeping(Int aiFeedSide)
 
   ; Prepare the player to feed.
   PreparePlayerToFeed()
@@ -251,12 +286,17 @@ Function StartVampireFeedSleeping(Bool abLeft = True)
   ; Get the bed or bedroll the target is sleeping in.
   ObjectReference SleepFurniture = FeedTarget.GetLinkedRef()
 
-  ; Assume feeding will be from the left side.
+  ; Default to left side.
   Float FeedAngle = FeedTarget.GetAngleZ() - 90.0
 
-  ; Swap the feed angle if we are on the right.
-  If !abLeft
+  ; Final feed side.
+  Int FeedSideDecision = FEED_SIDE_LEFT
+
+  ; Update feed angle based on furniture entry direction and/or player position.
+  If aiFeedSide == FEED_SIDE_RIGHT || aiFeedSide == FEED_SIDE_BOTH && FeedTarget.GetHeadingAngle(PlayerRef) > 0.0
+    ; Feed from right side.
     FeedAngle = FeedTarget.GetAngleZ() + 90.0
+    FeedSideDecision = FEED_SIDE_RIGHT
   EndIf
 
   ; Create feed marker.
@@ -277,7 +317,7 @@ Function StartVampireFeedSleeping(Bool abLeft = True)
 
   ; Play the feed animation.
   If SleepFurniture.HasKeyword(FurnitureBedroll)
-    If abLeft
+    If FeedSideDecision == FEED_SIDE_LEFT
       If PlayerRef.PlayIdle(VampireFeedingBedrollLeft_Loose)
         ; Debug.TraceAndBox("VampireFeedingBedrollLeft_Loose")
       ElseIf PlayerRef.PlayIdle(IdleVampireFeedFailsafe)
@@ -291,7 +331,7 @@ Function StartVampireFeedSleeping(Bool abLeft = True)
       EndIf
     EndIf
   Else
-    If abLeft
+    If FeedSideDecision == FEED_SIDE_LEFT
       If PlayerRef.PlayIdle(VampireFeedingBedLeft_Loose)
         ; Debug.TraceAndBox("VampireFeedingBedLeft_Loose")
       ElseIf PlayerRef.PlayIdle(IdleVampireFeedFailsafe)
