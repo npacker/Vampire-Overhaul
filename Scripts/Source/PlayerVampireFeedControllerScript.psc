@@ -16,23 +16,9 @@ Static Property XMarker Auto
 
 Keyword Property FurnitureBedroll Auto
 
-FormList Property FurnitureBedrollList Auto
-
-FormList Property FurnitureBedList Auto
-
 Idle Property IdleVampireStandingFront Auto
 
 Idle Property IdleVampireStandingBack Auto
-
-Idle Property IdleVampireBedrollLeft Auto
-
-Idle Property IdleVampireBedrollRight Auto
-
-Idle Property IdleVampireBedLeft Auto
-
-Idle Property IdleVampireBedRight Auto
-
-Idle Property IdleVampireFeedFailsafe Auto
 
 Idle Property VampireFeedingBedrollLeft_Loose Auto
 
