@@ -68,8 +68,6 @@ Int Property FEED_SIDE_BOTH = 2 AutoReadOnly
 
 Actor FeedTarget
 
-Int FeedSideDecision
-
 Float FeedDistance
 
 Float FeedAngle
@@ -293,9 +291,6 @@ Function StartVampireFeedSleeping(Int aiFeedSide)
   ObjectReference SleepFurniture = FeedTarget.GetLinkedRef()
 
   If aiFeedSide == FEED_SIDE_RIGHT || aiFeedSide == FEED_SIDE_BOTH && FeedTarget.GetHeadingAngle(PlayerRef) > 0.0
-    ; Feed from right side.
-    FeedSideDecision = FEED_SIDE_RIGHT
-
     ; Set right side feed angle.
     FeedAngle = FeedTarget.GetAngleZ() + 90.0
 
@@ -308,9 +303,6 @@ Function StartVampireFeedSleeping(Int aiFeedSide)
       FeedAnimation = VampireFeedingBedRight_Loose
     EndIf
   Else
-    ; Feed from left side.
-    FeedSideDecision = FEED_SIDE_LEFT
-
     ; Set left side feed angle.
     FeedAngle = FeedTarget.GetAngleZ() - 90.0
 
