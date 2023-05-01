@@ -98,178 +98,38 @@ EndEvent
 ;
 ;-------------------------------------------------------------------------------
 
-Function HandleFeed(Actor akTarget)
+Function HandleBite(Actor akTarget, Bool abFeed = False)
 
   ; Set the feed target.
   FeedTarget = akTarget
-
-  ; Do the feed.
-  DoNonCombatFeed()
-
-  ; Feed the player.
-  PlayerVampireQuest.VampireFeed()
-
-  ; Increment necks bitten stat.
-  Game.IncrementStat("Necks Bitten")
-
-EndFunction
-
-Function HandleBite(Actor akTarget)
-
-  ; Set the feed target.
-  FeedTarget = akTarget
-
-  ; Do the feed.
-  DoNonCombatFeed()
-
-  ; Increment necks bitten stat.
-  Game.IncrementStat("Necks Bitten")
-
-EndFunction
-
-Function HandleSleepingFeed(Actor akTarget)
-
-  ; Set the feed target.
-  FeedTarget = akTarget
-
-  ; Do the feed.
-  DoSleepingFeed(FEED_SIDE_BOTH)
-
-  ; Feed the player.
-  PlayerVampireQuest.VampireFeed()
-
-  ; Increment necks bitten stat.
-  Game.IncrementStat("Necks Bitten")
-
-EndFunction
-
-Function HandleSleepingFeedLeft(Actor akTarget)
-
-  ; Set the feed target.
-  FeedTarget = akTarget
-
-  ; Do the feed.
-  DoSleepingFeed(FEED_SIDE_LEFT)
-
-  ; Feed the player.
-  PlayerVampireQuest.VampireFeed()
-
-  ; Increment necks bitten stat.
-  Game.IncrementStat("Necks Bitten")
-
-EndFunction
-
-Function HandleSleepingFeedRight(Actor akTarget)
-
-  ; Set the feed target.
-  FeedTarget = akTarget
-
-  ; Do the feed.
-  DoSleepingFeed(FEED_SIDE_RIGHT)
-
-  ; Feed the player.
-  PlayerVampireQuest.VampireFeed()
-
-  ; Increment necks bitten stat.
-  Game.IncrementStat("Necks Bitten")
-
-EndFunction
-
-Function HandleSleepingBite(Actor akTarget)
-
-  ; Set the feed target.
-  FeedTarget = akTarget
-
-  ; Do the feed.
-  DoSleepingFeed(FEED_SIDE_BOTH)
-
-  ; Increment necks bitten stat.
-  Game.IncrementStat("Necks Bitten")
-
-EndFunction
-
-Function HandleSleepingBiteLeft(Actor akTarget)
-
-  ; Set the feed target.
-  FeedTarget = akTarget
-
-  ; Do the feed.
-  DoSleepingFeed(FEED_SIDE_LEFT)
-
-  ; Increment necks bitten stat.
-  Game.IncrementStat("Necks Bitten")
-
-EndFunction
-
-Function HandleSleepingBiteRight(Actor akTarget)
-
-  ; Set the feed target.
-  FeedTarget = akTarget
-
-  ; Do the feed.
-  DoSleepingFeed(FEED_SIDE_RIGHT)
-
-  ; Increment necks bitten stat.
-  Game.IncrementStat("Necks Bitten")
-
-EndFunction
-
-Function HandleCombatFeed(Actor akTarget)
-
-  ; Set the feed target.
-  FeedTarget = akTarget
-
-  ; Do the feed.
-  DoCombatFeed()
-
-  ; Feed the player.
-  PlayerVampireQuest.VampireFeed()
-
-  ; Restore HP.
-  PlayerRef.RestoreActorValue("health", FeedHealthRestored)
-
-  ; Increment necks bitten stat.
-  Game.IncrementStat("Necks Bitten")
-
-EndFunction
-
-Function HandleCombatBite(Actor akTarget)
-
-  ; Set the feed target.
-  FeedTarget = akTarget
-
-  ; Do the feed.
-  DoCombatFeed()
-
-  ; Restore HP.
-  PlayerRef.RestoreActorValue("health", BiteHealthRestored)
-
-  ; Increment necks bitten stat.
-  Game.IncrementStat("Necks Bitten")
-
-EndFunction
-
-Function DoNonCombatFeed()
 
   ; Trigger vampire transformation quest.
   DLC1VampireTurn.PlayerBitesMe(FeedTarget)
 
+  ; Prepare the player to feed.
+  PreparePlayerToFeed()
+
   ; Do the feed.
-  StartVampireFeed()
+  PlayFeedIdleStanding()
+
+  If abFeed == True
+    ; Feed the player.
+    PlayerVampireQuest.VampireFeed()
+  EndIf
+
+  ; Increment necks bitten stat.
+  Game.IncrementStat("Necks Bitten")
 
 EndFunction
 
-Function DoSleepingFeed(Int aiFeedSide)
+Function HandleCombatBite(Actor akTarget, Bool abFeed = False)
 
-  ; Trigger vampire transformation quest.
-  DLC1VampireTurn.PlayerBitesMe(FeedTarget)
+  ; Set the feed target.
+  FeedTarget = akTarget
 
-  ; Do the feed.
-  StartVampireFeedSleeping(aiFeedSide)
-
-EndFunction
-
-Function DoCombatFeed()
+  ; Restrain target.
+  FeedTarget.SetDontMove()
+  FeedTarget.SetRestrained()
 
   ; Prevent the target from dying before the animation completes.
   FeedTarget.StartDeferredKill()
@@ -277,15 +137,129 @@ Function DoCombatFeed()
   ; Kill the target.
   FeedTarget.Kill(PlayerRef)
 
+  ; Prepare the player to feed.
+  PreparePlayerToFeed()
+
   ; Do the feed.
-  StartVampireFeed()
+  PlayFeedIdleStanding()
+
+  If abFeed == True
+    ; Feed the player.
+    PlayerVampireQuest.VampireFeed()
+
+    ; Restore HP.
+    PlayerRef.RestoreActorValue("health", FeedHealthRestored)
+  Else
+    ; Restore HP.
+    PlayerRef.RestoreActorValue("health", BiteHealthRestored)
+  EndIf
+
+  ; Increment necks bitten stat.
+  Game.IncrementStat("Necks Bitten")
 
 EndFunction
 
-Function StartVampireFeedSleeping(Int aiFeedSide)
+Function HandleSleepingBite(Actor akTarget, Bool abFeed = False)
+
+  ; Set the feed target.
+  FeedTarget = akTarget
+
+  ; Trigger vampire transformation quest.
+  DLC1VampireTurn.PlayerBitesMe(FeedTarget)
 
   ; Prepare the player to feed.
   PreparePlayerToFeed()
+
+  ; Do the feed.
+  PlayFeedIdleSleeping(FEED_SIDE_BOTH)
+
+  If abFeed == True
+    ; Feed the player.
+    PlayerVampireQuest.VampireFeed()
+  EndIf
+
+  ; Increment necks bitten stat.
+  Game.IncrementStat("Necks Bitten")
+
+EndFunction
+
+Function HandleSleepingBiteLeft(Actor akTarget, Bool abFeed = False)
+
+  ; Set the feed target.
+  FeedTarget = akTarget
+
+  ; Trigger vampire transformation quest.
+  DLC1VampireTurn.PlayerBitesMe(FeedTarget)
+
+  ; Prepare the player to feed.
+  PreparePlayerToFeed()
+
+  ; Do the feed.
+  PlayFeedIdleSleeping(FEED_SIDE_LEFT)
+
+  If abFeed == True
+    ; Feed the player.
+    PlayerVampireQuest.VampireFeed()
+  EndIf
+
+  ; Increment necks bitten stat.
+  Game.IncrementStat("Necks Bitten")
+
+EndFunction
+
+Function HandleSleepingBiteRight(Actor akTarget, Bool abFeed = False)
+
+  ; Set the feed target.
+  FeedTarget = akTarget
+
+  ; Trigger vampire transformation quest.
+  DLC1VampireTurn.PlayerBitesMe(FeedTarget)
+
+  ; Prepare the player to feed.
+  PreparePlayerToFeed()
+
+  ; Do the feed.
+  PlayFeedIdleSleeping(FEED_SIDE_RIGHT)
+
+  If abFeed == True
+    ; Feed the player.
+    PlayerVampireQuest.VampireFeed()
+  EndIf
+
+  ; Increment necks bitten stat.
+  Game.IncrementStat("Necks Bitten")
+
+EndFunction
+
+Function PlayFeedIdleStanding()
+
+  ; Play feed animation.
+  If PlayerRef.PlayIdleWithTarget(IdleVampireStandingFront, FeedTarget) || PlayerRef.PlayIdleWithTarget(IdleVampireStandingBack, FeedTarget)
+    ; Wait for animation to start.
+    Utility.Wait(PauseTime)
+
+    ; Check if animation has started.
+    If PlayerRef.GetAnimationVariableBool("bIsSynced")
+      ; Try to register for the vampire feed end event.
+      If RegisterForAnimationEvent(PlayerRef, VampireFeedEnd)
+        ; Register for failsafe update after animation should end.
+        RegisterForSingleUpdate(FeedMaxTime)
+      Else
+        ; Failed to register for the feed end event, so clean up now.
+        Cleanup()
+      EndIf
+    Else
+      ; Feed animation did not play, so clean up now.
+      Cleanup()
+    EndIf
+  Else
+    ; Feed animation did not play, so clean up now.
+    Cleanup()
+  EndIf
+
+EndFunction
+
+Function PlayFeedIdleSleeping(Int aiFeedSide)
 
   ; Get the bed or bedroll the target is sleeping in.
   ObjectReference SleepFurniture = FeedTarget.GetLinkedRef()
@@ -345,41 +319,6 @@ Function StartVampireFeedSleeping(Int aiFeedSide)
         RegisterForSingleUpdate(FeedMaxTime)
       Else
         ; Failed to register for feed end event, so clean up now.
-        Cleanup()
-      EndIf
-    Else
-      ; Feed animation did not play, so clean up now.
-      Cleanup()
-    EndIf
-  Else
-    ; Feed animation did not play, so clean up now.
-    Cleanup()
-  EndIf
-
-EndFunction
-
-Function StartVampireFeed()
-
-  ; Restrain target.
-  FeedTarget.SetDontMove()
-  FeedTarget.SetRestrained()
-
-  ; Prepare player to feed.
-  PreparePlayerToFeed()
-
-  ; Play feed animation.
-  If PlayerRef.PlayIdleWithTarget(IdleVampireStandingFront, FeedTarget) || PlayerRef.PlayIdleWithTarget(IdleVampireStandingBack, FeedTarget)
-    ; Wait for animation to start.
-    Utility.Wait(PauseTime)
-
-    ; Check if animation has started.
-    If PlayerRef.GetAnimationVariableBool("bIsSynced")
-      ; Try to register for the vampire feed end event.
-      If RegisterForAnimationEvent(PlayerRef, VampireFeedEnd)
-        ; Register for failsafe update after animation should end.
-        RegisterForSingleUpdate(FeedMaxTime)
-      Else
-        ; Failed to register for the feed end event, so clean up now.
         Cleanup()
       EndIf
     Else
